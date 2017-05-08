@@ -1,3 +1,8 @@
+/*
+ * A Simple Display Manager for Linux, it will start a Xorg Server and log a user to run startxfce4
+ * gcc -Wall -O2 -std=c99 -D_POSIX_C_SOURCE=200819L -o mydm mydm.c -lX11
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
