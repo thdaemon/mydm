@@ -7,4 +7,6 @@ int unblock_signal(int signum);
 int block_signal(int signum);
 int exec_try_login_user(char* username, char* file);
 
+#define my_signal_cld_reset my_signal
+
 #endif /* __TOOLS_H_ */

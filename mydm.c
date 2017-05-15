@@ -127,13 +127,14 @@ int main(int argc, char* argv[])
 	}
 
 	my_signal(SIGQUIT, SIG_IGN, 1);
-	my_signal(SIGHUP, SIG_IGN, 1);
 	my_signal(SIGTSTP, SIG_IGN, 1);
 
-	my_signal(SIGUSR1, sig_user1, 1);
-	my_signal(SIGCHLD, sig_child, 1);
-	my_signal(SIGTERM, sig_term, 1);
-	my_signal(SIGINT, sig_term, 1);
+	my_signal_cld_reset(SIGHUP, SIG_IGN, 1);
+	my_signal_cld_reset(SIGTERM, sig_term, 1);
+	my_signal_cld_reset(SIGCHLD, sig_child, 1);
+	my_signal_cld_reset(SIGUSR1, sig_user1, 1);
+
+	my_signal_cld_ign(SIGINT, sig_term, 1);
 
 	block_signal(SIGCHLD);
 	if ((pid = fork()) < 0)
@@ -142,7 +143,8 @@ int main(int argc, char* argv[])
 	if (pid == 0) {
 		unblock_signal(SIGCHLD);
 
-		my_signal(SIGINT, SIG_IGN, 1);
+		my_signal_cld_ign(SIGINT, SIG_IGN, 1);
+
 		my_signal(SIGTTIN, SIG_IGN, 1);
 		my_signal(SIGTTOU, SIG_IGN, 1);
 
@@ -161,7 +163,7 @@ int main(int argc, char* argv[])
 	while (!xstart)
 		pause();
 
-	my_signal(SIGUSR1, SIG_IGN, 1);
+	my_signal_cld_reset(SIGUSR1, SIG_IGN, 1);
 
 	/* Can the display connect? */
 	if ((display = XOpenDisplay(arg_display)) == NULL) {
@@ -184,12 +186,12 @@ int main(int argc, char* argv[])
 		pid_t cpid = 0;
 
 		unblock_signal(SIGCHLD);
-		my_signal(SIGINT, SIG_IGN, 1);
+		my_signal_cld_ign(SIGINT, SIG_IGN, 1);
 
-		my_signal(SIGTERM, SIG_DFL, 1);
-		my_signal(SIGCHLD, SIG_DFL, 1);
-		my_signal(SIGUSR1, SIG_DFL, 1);
-		my_signal(SIGHUP, SIG_DFL, 1);
+		my_signal_cld_reset(SIGHUP, SIG_DFL, 1);
+		my_signal_cld_reset(SIGTERM, SIG_DFL, 1);
+		my_signal_cld_reset(SIGCHLD, SIG_DFL, 1);
+		my_signal_cld_reset(SIGUSR1, SIG_DFL, 1);
 
 		setpgid(getpid(), getpid());
 
