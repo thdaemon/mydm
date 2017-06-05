@@ -8,6 +8,8 @@
 
 #define _POSIX_C_SOURCE 200819L
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,7 +20,13 @@
 #include <signal.h>
 #include <errno.h>
 
+#ifdef CONFIG_OWN_LIBX11DEV
+#define Display void
+extern Display* XOpenDisplay(char*);
+extern int XCloseDisplay(Display*);
+#else
 #include <X11/Xlib.h>
+#endif /* CONFIG_OWN_LIBX11DEV */
 
 #include "tools.h"
 
@@ -71,7 +79,7 @@ void sig_term(int signo)
 
 int main(int argc, char* argv[])
 {
-	int opt;
+	int opt, no_system_su;
 	pid_t pid;
 	Display* display;
 	char *arg_display, *arg_vt, *arg_xclient, *arg_run, *arg_xserver, *arg_user;
@@ -83,7 +91,7 @@ int main(int argc, char* argv[])
 	arg_xserver = "X";
 	arg_user = NULL;
 
-	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:h")) != -1) {
+	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:n:h")) != -1) {
 		switch (opt) {
 		case 'd':
 			arg_display = (char*)optarg;
@@ -104,9 +112,12 @@ int main(int argc, char* argv[])
 		case 'l':
 			arg_user = (char*)optarg;
 			break;
+		case 'n':
+			no_system_su = 1;
+			break;
 		case 'h':
 		case '?':
-			printf("Usage: %s [-d display] [-v vt] [-c program] [-r program] [-s program] [-u username] [-l login] [-h]\n"
+			printf("Usage: %s [-d display] [-v vt] [-c program] [-r program] [-s program] [-u username] [-l login] [-n] [-h]\n"
 			 " OPTIONS \n"
 			 "	-d display         Display name, default ':0' \n"
 			 "	-v vt              VT number, default 'vt7'\n"
@@ -115,6 +126,7 @@ int main(int argc, char* argv[])
 			 "	-s program         The path of X Server, default 'X'\n"
 			 "	-u username        The user to login, default null (Not login)\n"
 			 "	-l login           Same as -u\n"
+			 "	-n                 Do not use the su command of system (default used)\n"
 			 "	-h                 Show this usage\n"
 			 "\n EXAMPLES\n"
 			 "	%s -d :0 -c gnome-session -u my_user_name\n"
@@ -201,7 +213,7 @@ int main(int argc, char* argv[])
 			}
 
 			if (cpid == 0) {
-				exec_try_login_user(arg_user, arg_run);
+				exec_try_login_user(arg_user, arg_run, no_system_su);
 				fprintf(stderr, "exec %s error: %s\n", arg_run, strerror(errno));
 				kill(getppid(), SIGTERM);
 				exit(1);
@@ -217,7 +229,7 @@ int main(int argc, char* argv[])
 		}
 		snprintf(command, length, "exec %s", arg_xclient);
 */
-		exec_try_login_user(arg_user, arg_xclient);
+		exec_try_login_user(arg_user, arg_xclient, no_system_su);
 		if (cpid)
 			kill(cpid, SIGTERM);
 		fprintf(stderr, "exec X client '%s' error: %s\n", arg_xclient, strerror(errno));
