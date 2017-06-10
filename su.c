@@ -28,15 +28,37 @@ extern char **environ;
                                             return -1; \
                                } while (0);
 
-char* save_evs[] = { "PATH", "TERM", "LANG", "LANGUAGE", "LC_CTYPE", "LC_NUMERIC",
-                     "LC_TIME", "LC_COLLATE", "LC_MONETARY", "LC_MESSAGES", "LC_PAPER", 
-                     "LC_NAME", "LC_ADDRESS", "LC_TELEPHONE", "LC_MEASUREMENT", 
-                     "LC_IDENTIFICATION" };
+char* save_evs[] = { "DISPLAY", "PATH", "TERM", "LANG", "LANGUAGE", "LC_CTYPE",
+                     "LC_NUMERIC", "LC_TIME", "LC_COLLATE", "LC_MONETARY",
+                     "LC_MESSAGES", "LC_PAPER", "LC_NAME", "LC_ADDRESS",
+                     "LC_TELEPHONE", "LC_MEASUREMENT", "LC_IDENTIFICATION",
+                     "LC_ALL" };
+
+char* save_evs_values[sizeof(save_evs) / sizeof(char*)];
+
+static int save_env(char* value, int n)
+{
+	char* buffer;
+	size_t length;
+
+	length = strlen(value);
+
+	if ((buffer = malloc(length + 1)) == NULL) {
+		errno = ENOMEM;
+		return -1;
+	}
+
+	strcpy(buffer, value);
+
+	save_evs_values[n] = buffer;
+	return 0;
+}
 
 int switch_user(char* username)
 {
 	struct passwd* pwd;
-	char** environ_save;
+
+	memset(save_evs_values, 0, sizeof(save_evs_values));
 
 	if ((pwd = getpwnam(username)) == NULL)
 		return -1;
@@ -49,23 +71,46 @@ int switch_user(char* username)
 
 	chdir(pwd->pw_dir);
 
-	environ_save = environ;
-	environ = NULL;
-
-	setenv_er("HOME", pwd->pw_dir);
-	setenv_er("USER", pwd->pw_name);
-	setenv_er("LOGNAME", pwd->pw_name);
-	setenv_er("SHELL", pwd->pw_shell);
-
 	int i = 0;
-	while (environ_save[i]) {
-		for (int j = 0; j < sizeof(save_evs) / sizeof(char*); j++) {
-			if (memcmp(environ_save[i], save_evs[j], strlen(save_evs[j])) == 0) {
-				putenv(environ_save[i]);
+	while (environ[i]) {
+		for (int j = 0; j < (sizeof(save_evs) / sizeof(char*)); j++) {
+			if (memcmp(environ[i], save_evs[j], strlen(save_evs[j])) == 0) {
+				if (save_env(environ[i], j) < 0)
+					goto cleanup_save_env_err;
 			}
 		}
 		i++;
 	}
 
+	environ = NULL;
+	setenv_er("HOME", pwd->pw_dir);
+	setenv_er("USER", pwd->pw_name);
+	setenv_er("LOGNAME", pwd->pw_name);
+	setenv_er("SHELL", pwd->pw_shell);
+
+	for (int n = 0; n < (sizeof(save_evs) / sizeof(char*)); n++) {
+		if (save_evs_values[n]) {
+			char* value = strchr(save_evs_values[n], '=');
+
+			if (!value || *value == 0)
+				continue;
+
+			value++;
+			if (setenv(save_evs[n], value, 1) < 0)
+				goto cleanup_save_env_err;
+
+			free(save_evs_values[n]);
+			save_evs_values[n] = NULL;
+		}
+	}
+
 	return 0;
+
+cleanup_save_env_err:
+	for (int n = 0; n < (sizeof(save_evs) / sizeof(char*)); n++) {
+		if (save_evs_values[n])
+			free(save_evs_values[n]);
+	}
+
+	return -1;
 }

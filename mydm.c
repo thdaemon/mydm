@@ -79,7 +79,7 @@ void sig_term(int signo)
 
 int main(int argc, char* argv[])
 {
-	int opt, no_system_su;
+	int opt, no_system_su = 0;
 	pid_t pid;
 	Display* display;
 	char *arg_display, *arg_vt, *arg_xclient, *arg_run, *arg_xserver, *arg_user;
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
 	arg_xserver = "X";
 	arg_user = NULL;
 
-	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:n:h")) != -1) {
+	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:nh")) != -1) {
 		switch (opt) {
 		case 'd':
 			arg_display = (char*)optarg;
