@@ -13,7 +13,7 @@ if [ "$LDCONFIG" = "" ]; then
 fi
 
 oldIFS=$IFS
-IFS=""
+IFS=$'\n'
 for i in `$LDCONFIG -p | grep "libX11.so.6[\.0-9]*$"` ; do
 	i=${i#*=> }
 	libs[${#libs[*]}]=$i
