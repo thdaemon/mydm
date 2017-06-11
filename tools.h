@@ -1,3 +1,9 @@
+/*
+ * Copyright Tian Hao <thxdaemon@gmail.com>
+ * License: GPLv3
+ * It is a opensource (free) software
+ */
+
 #ifndef __TOOLS_H_
 #define __TOOLS_H_
 

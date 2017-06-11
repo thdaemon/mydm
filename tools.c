@@ -1,3 +1,9 @@
+/*
+ * Copyright Tian Hao <thxdaemon@gmail.com>
+ * License: GPLv3
+ * It is a opensource (free) software
+ */
+
 #define _POSIX_C_SOURCE 200819L
 
 #include <stdio.h>

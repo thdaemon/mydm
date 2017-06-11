@@ -8,7 +8,7 @@ CC := gcc
 STRIP := strip
 
 CFLAGS := -Wall -O2 -std=c99
-LDFLAGS := -lX11
+LDFLAGS := -lX11 -L.
 
 
 all : mydm
@@ -32,4 +32,4 @@ install : all
 	cp mydm $(PREFIX)$(INSTALLDIR)/mydm
 
 clean:
-	rm -f *.o mydm config.h
+	rm -f *.o mydm config.h *.so
