@@ -20,14 +20,15 @@ for i in `$LDCONFIG -p | grep "libX11.so.6[\.0-9]*$"` ; do
 done
 IFS=$oldIFS
 
-echo "Which libX11 shared object you want to link?\n"
+echo -e "Which libX11 shared object you want to link?\n"
 
 index=0
 for i in ${libs[*]} ; do
-	echo "$index: $i"
+	echo "  $index: $i"
 	index=$(($index+1))
 done
 
 index=0
+echo ''
 read -p "Your choose (default 0): " index
-ln -s "${libs[$index]}" ./libX11.so
+ln -s -f "${libs[$index]}" ./libX11.so

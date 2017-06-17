@@ -30,7 +30,9 @@ extern int XCloseDisplay(Display*);
 
 #include "tools.h"
 
-#define DEFAULT_XCLIENT "startxfce4"
+#ifndef CONFIG_DEFAULT_XCLIENT
+#define CONFIG_DEFAULT_XCLIENT "startxfce4"
+#endif /* CONFIG_DEFAULT_XCLIENT */
 
 int xstart = 0;
 pid_t xsvrpid = 0, xclipid = 0;
@@ -86,7 +88,7 @@ int main(int argc, char* argv[])
 
 	arg_display = ":0";
 	arg_vt = "vt7";
-	arg_xclient = DEFAULT_XCLIENT;
+	arg_xclient = CONFIG_DEFAULT_XCLIENT;
 	arg_run = NULL;
 	arg_xserver = "X";
 	arg_user = NULL;
@@ -121,7 +123,7 @@ int main(int argc, char* argv[])
 			 " OPTIONS \n"
 			 "	-d display         Display name, default ':0' \n"
 			 "	-v vt              VT number, default 'vt7'\n"
-			 "	-c program         X client, default '" DEFAULT_XCLIENT "'\n"
+			 "	-c program         X client, default '" CONFIG_DEFAULT_XCLIENT "'\n"
 			 "	-r program         After run x client, will run it, but do not wait it to exit, default null\n"
 			 "	-s program         The path of X Server, default 'X'\n"
 			 "	-u username        The user to login, default null (Not login)\n"
