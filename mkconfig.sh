@@ -1,9 +1,21 @@
 #!/bin/sh
 
+is_int_or_float()
+{
+	echo $1 | grep "[^\.0-9]" > /dev/null 2>&1 && return 1
+	return 0
+}
+
 add_macro()
 {
 	local line="#define $1"
-	[ "$2" != "" ] && line="$line $2"
+	if [ "$2" != "" ]; then
+		if is_int_or_float $2; then
+			line="$line $2"
+		else
+			line="$line \"$2\""
+		fi
+	fi
 
 	echo $line >> config.h
 }

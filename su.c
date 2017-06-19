@@ -25,16 +25,16 @@ extern char **environ;
 
 #define setenv_er(name, value) do { \
                                       if (setenv((name), (value), 1) < 0) \
-                                            return -1; \
+                                            goto cleanup_save_env_err; \
                                } while (0);
 
-char* save_evs[] = { "DISPLAY", "PATH", "TERM", "LANG", "LANGUAGE", "LC_CTYPE",
-                     "LC_NUMERIC", "LC_TIME", "LC_COLLATE", "LC_MONETARY",
-                     "LC_MESSAGES", "LC_PAPER", "LC_NAME", "LC_ADDRESS",
-                     "LC_TELEPHONE", "LC_MEASUREMENT", "LC_IDENTIFICATION",
-                     "LC_ALL" };
+static char* save_evs[] = { "DISPLAY", "PATH", "TERM", "LANG", "LANGUAGE", "LC_CTYPE",
+                            "LC_NUMERIC", "LC_TIME", "LC_COLLATE", "LC_MONETARY",
+                            "LC_MESSAGES", "LC_PAPER", "LC_NAME", "LC_ADDRESS",
+                            "LC_TELEPHONE", "LC_MEASUREMENT", "LC_IDENTIFICATION",
+                            "LC_ALL" };
 
-char* save_evs_values[sizeof(save_evs) / sizeof(char*)];
+static char* save_evs_values[sizeof(save_evs) / sizeof(char*)];
 
 static int save_env(char* value, int n)
 {
@@ -69,12 +69,16 @@ int switch_user(char* username)
 	if ((setgid(pwd->pw_gid) < 0) || (setuid(pwd->pw_uid) < 0))
 		return -1;
 
-	chdir(pwd->pw_dir);
+	if (chdir(pwd->pw_dir) < 0)
+		return -1;
 
 	int i = 0;
 	while (environ[i]) {
 		for (int j = 0; j < (sizeof(save_evs) / sizeof(char*)); j++) {
-			if (memcmp(environ[i], save_evs[j], strlen(save_evs[j])) == 0) {
+			size_t length = strlen(save_evs[j]);
+
+			if ((memcmp(environ[i], save_evs[j], length) == 0)
+			    && (environ[i][length] == '=')) {
 				if (save_env(environ[i], j) < 0)
 					goto cleanup_save_env_err;
 			}
@@ -92,12 +96,13 @@ int switch_user(char* username)
 		if (save_evs_values[n]) {
 			char* value = strchr(save_evs_values[n], '=');
 
-			if (!value || *value == 0)
+			if (!value || *value == 0) {
+				free(save_evs_values[n]);
 				continue;
+			}
 
 			value++;
-			if (setenv(save_evs[n], value, 1) < 0)
-				goto cleanup_save_env_err;
+			setenv_er(save_evs[n], value);
 
 			free(save_evs_values[n]);
 			save_evs_values[n] = NULL;
