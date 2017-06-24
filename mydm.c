@@ -119,6 +119,9 @@ int main(int argc, char* argv[])
 			break;
 		case 'h':
 		case '?':
+			printf("mydm Display Manager version %s\nCopyright (C) thdaemon\n"
+			       "It is an opensource (free) software. This software is "
+			       "published under the GNU GPLv3 license.\n\n", PROJECT_VERSION);
 			printf("Usage: %s [-d display] [-v vt] [-c program] [-r program] [-s program] [-u username] [-l login] [-n] [-h]\n"
 			 " OPTIONS \n"
 			 "	-d display         Display name, default ':0' \n"
