@@ -79,7 +79,26 @@ void sig_term(int signo)
 	//killxsvr();
 }
 
-int main(int argc, char* argv[])
+int exec_xserver(char *xserver, char *display, char *vt, int argc, char *argv[])
+{
+	char *srv_argv[argc + 6];
+
+	srv_argv[0] = xserver;
+	srv_argv[1] = display;
+	srv_argv[2] = vt;
+	srv_argv[3] = "-nolisten";
+	srv_argv[4] = "tcp";
+
+	for (int i = 0; i < argc; i++) {
+		srv_argv[i + 5] = argv[i];
+	}
+
+	srv_argv[argc + 5] = NULL;
+
+	return execvp(xserver, srv_argv);
+}
+
+int main(int argc, char *argv[])
 {
 	int opt, no_system_su = 0;
 	pid_t pid;
@@ -119,10 +138,10 @@ int main(int argc, char* argv[])
 			break;
 		case 'h':
 		case '?':
-			printf("mydm Display Manager version %s\nCopyright (C) thdaemon\n"
+			printf("mydm Display Manager version %s\nCopyright (C) Tian Hao <thxdaemon@gmail.com>\n"
 			       "It is an opensource (free) software. This software is "
 			       "published under the GNU GPLv3 license.\n\n", PROJECT_VERSION);
-			printf("Usage: %s [-d display] [-v vt] [-c program] [-r program] [-s program] [-u username] [-l login] [-n] [-h]\n"
+			printf("Usage: %s [-d|-v|-c|-r|-s|-u|-l|-n|-h] -- server options\n"
 			 " OPTIONS \n"
 			 "	-d display         Display name, default ':0' \n"
 			 "	-v vt              VT number, default 'vt7'\n"
@@ -133,10 +152,12 @@ int main(int argc, char* argv[])
 			 "	-l login           Same as -u\n"
 			 "	-n                 Do not use the su command of system (default used)\n"
 			 "	-h                 Show this usage\n"
+			 "\n SERVER OPTIONS\n"
+			 "	The additional options to X server. e.g. -depth x\n"
 			 "\n EXAMPLES\n"
 			 "	%s -d :0 -c gnome-session -u my_user_name\n"
-			 "	%s -d :2 -v vt3 -c xterm -r 'exec metacity'\n"
-			 "	%s -c '/path/to/myde_init.sh' -r 'exec /path/to/myde_autostart.sh' -u my_user_name\n"
+			 "	%s -d :2 -v vt3 -c xterm -r metacity\n"
+			 "	%s -c '/path/to/myde_init.sh' -u my_user_name -n\n"
 			 , argv[0], argv[0], argv[0], argv[0]);
 			exit(0);
 			break;
@@ -167,7 +188,7 @@ int main(int argc, char* argv[])
 
 		my_signal(SIGUSR1, SIG_IGN, 1);
 
-		execlp(arg_xserver, arg_xserver, arg_display, arg_vt, "-nolisten", "tcp", 0);
+		exec_xserver(arg_xserver, arg_display, arg_vt, argc - optind, &argv[optind]);
 		fprintf(stderr, "exec X server error: %s\n", strerror(errno));
 
 		exit(1);
@@ -224,16 +245,7 @@ int main(int argc, char* argv[])
 				exit(1);
 			}
 		}
-/*
-		size_t length = strlen(arg_xclient) + 6;
-		char* command = malloc(length);
-		if (command == NULL) {
-			fprintf(stderr, "malloc: %s", strerror(ENOMEM));
-			killxsvr();
-			exit(1);
-		}
-		snprintf(command, length, "exec %s", arg_xclient);
-*/
+
 		exec_try_login_user(arg_user, arg_xclient, no_system_su);
 		if (cpid)
 			kill(cpid, SIGTERM);
