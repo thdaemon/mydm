@@ -85,13 +85,16 @@ int xauth_magic_cookie_gen(const char *display, const char *username)
 		return -1;
 	}
 
-	if (waitpid(pid, &status, 0) < 0)
-		return -1;
+	while (waitpid(pid, &status, 0) != pid) {
+		if (errno != EINTR) {
+			return -1;
+		}
+	}
 
 	unblock_signal(SIGCHLD);
 
 	if ((!WIFEXITED(status)) || (WEXITSTATUS(status) != 0)) {
-		fprintf(stderr, "xauth_gen_magic_cookie: xauth exited failed.\n");
+		fprintf(stderr, "xauth_magic_cookie_gen: xauth exited failed.\n");
 		return -1;
 	}
 

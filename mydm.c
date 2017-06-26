@@ -7,6 +7,7 @@
  */
 
 #define _POSIX_C_SOURCE 200819L
+#define _XOPEN_SOURCE 700
 
 #include "config.h"
 
@@ -55,7 +56,15 @@ void sig_child(int signo)
 	int status;
 	pid_t pid;
 
-	pid = wait(&status);
+	/* FIXME: Why should I use WNOHANG???
+	 * If I don't, when xauth_magic_cookie_gen() unblock SIGCHLD, 
+	 * Linux call handler (It is not fit POSIX), but it will cause 
+	 * waitpid/wait block. It should return -1 with ECHILD.
+	 */
+	pid = waitpid(-1, &status, WNOHANG);
+
+	if ((pid == 0) || (pid == -1))
+		return;
 
 	if (waitpid(pid, NULL, WNOHANG) >= 0)
 		return;
