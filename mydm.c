@@ -1,12 +1,13 @@
 /*
  * Copyright Tian Hao <thxdaemon@gmail.com>
  * License: GPLv3
- * It is a opensource (free) software
+ * It is an opensource (free) software
  *
  * A Simple Display Manager for Linux, it will start a Xorg Server and log a user to run X Client
  */
 
 #define _POSIX_C_SOURCE 200819L
+#define _XOPEN_SOURCE 700
 
 #include "config.h"
 
@@ -29,6 +30,7 @@ extern int XCloseDisplay(Display*);
 #endif /* CONFIG_OWN_LIBX11DEV */
 
 #include "tools.h"
+#include "xsec.h"
 
 #ifndef CONFIG_DEFAULT_XCLIENT
 #define CONFIG_DEFAULT_XCLIENT "startxfce4"
@@ -54,7 +56,15 @@ void sig_child(int signo)
 	int status;
 	pid_t pid;
 
-	pid = wait(&status);
+	/* FIXME: Why should I use WNOHANG???
+	 * If I don't, when xauth_magic_cookie_gen() unblock SIGCHLD, 
+	 * Linux call handler (It is not fit POSIX), but it will cause 
+	 * waitpid/wait block. It should return -1 with ECHILD.
+	 */
+	pid = waitpid(-1, &status, WNOHANG);
+
+	if ((pid == 0) || (pid == -1))
+		return;
 
 	if (waitpid(pid, NULL, WNOHANG) >= 0)
 		return;
@@ -81,7 +91,7 @@ void sig_term(int signo)
 
 int main(int argc, char* argv[])
 {
-	int opt, no_system_su = 0;
+	int opt, no_system_su = 0, arg_use_xauth = 0;
 	pid_t pid;
 	Display* display;
 	char *arg_display, *arg_vt, *arg_xclient, *arg_run, *arg_xserver, *arg_user;
@@ -93,7 +103,7 @@ int main(int argc, char* argv[])
 	arg_xserver = "X";
 	arg_user = NULL;
 
-	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:nh")) != -1) {
+	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:nAh")) != -1) {
 		switch (opt) {
 		case 'd':
 			arg_display = (char*)optarg;
@@ -117,9 +127,12 @@ int main(int argc, char* argv[])
 		case 'n':
 			no_system_su = 1;
 			break;
+		case 'A':
+			arg_use_xauth = 1;
+			break;
 		case 'h':
 		case '?':
-			printf("Usage: %s [-d display] [-v vt] [-c program] [-r program] [-s program] [-u username] [-l login] [-n] [-h]\n"
+			printf("Usage: %s [-d display] [-v vt] [-c program] [-r program] [-s program] [-u username] [-l login] [-n] [-A] [-h]\n"
 			 " OPTIONS \n"
 			 "	-d display         Display name, default ':0' \n"
 			 "	-v vt              VT number, default 'vt7'\n"
@@ -129,6 +142,7 @@ int main(int argc, char* argv[])
 			 "	-u username        The user to login, default null (Not login)\n"
 			 "	-l login           Same as -u\n"
 			 "	-n                 Do not use the su command of system (default used)\n"
+			 "	-A                 Use MIT-MAGIC-COOKIE-1 XSecurity\n"
 			 "	-h                 Show this usage\n"
 			 "\n EXAMPLES\n"
 			 "	%s -d :0 -c gnome-session -u my_user_name\n"
@@ -150,6 +164,10 @@ int main(int argc, char* argv[])
 
 	my_signal_cld_ign(SIGINT, sig_term, 1);
 
+	/* when arg_user is null, it will use the uid of process's */
+	if (xauth_magic_cookie_prepare_filename(arg_user, NULL) < 0)
+		err_quit("xauth_magic_cookie_prepare_filename");
+
 	block_signal(SIGCHLD);
 	if ((pid = fork()) < 0)
 		err_quit("fork");
@@ -164,7 +182,12 @@ int main(int argc, char* argv[])
 
 		my_signal(SIGUSR1, SIG_IGN, 1);
 
-		execlp(arg_xserver, arg_xserver, arg_display, arg_vt, "-nolisten", "tcp", 0);
+		if (arg_use_xauth) {
+			execlp(arg_xserver, arg_xserver, arg_display, arg_vt,
+			       "-auth", getenv("XAUTHORITY"), "-nolisten", "tcp", 0);
+		} else {
+			execlp(arg_xserver, arg_xserver, arg_display, arg_vt, "-nolisten", "tcp", 0);
+		}
 		fprintf(stderr, "exec X server error: %s\n", strerror(errno));
 
 		exit(1);
@@ -187,6 +210,13 @@ int main(int argc, char* argv[])
 	}
 
 	XCloseDisplay(display);
+
+	/* when arg_user is null, it will use the uid of process's */
+	if (xauth_magic_cookie_gen(arg_display, arg_user) < 0) {
+		fprintf(stderr, "Cannot generate a magic cookie\n");
+		killxsvr();
+		exit(1);
+	}
 
 	setenv("DISPLAY", arg_display, 1);
 

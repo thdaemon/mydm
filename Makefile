@@ -1,7 +1,7 @@
 PREFIX :=
 INSTALLDIR := /usr/local/bin
 
-OBJS := mydm.o tools.o su.o
+OBJS := mydm.o tools.o su.o xsec.o
 
 CROSS :=
 CC := gcc

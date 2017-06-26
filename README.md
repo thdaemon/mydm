@@ -4,7 +4,7 @@ A simple and lightweight display manager for Linux
 
 ```
 cd path-to-mydm-src
-./mkconfig.sh
+./mkconfig.sh --enable-xsec
 make
 sudo make install
 ```
@@ -15,11 +15,17 @@ For usage, run `mydm -h`
 
 **Compiling dependent**: GNU GCC, GNU Make, libx11-dev (optional), shell, etc.
 
-### Xauth
+### XSecurity
 
-mydm not support Xauth now, so mydm is NOT suitable for computers that have multiple users logged in at the same time.
+1. Not Authority
 
-But for the personal computer and most of the embedded device is enough.
+	mydm can run X without XSecurity, and this is the default. It is NOT suitable for computers that have multiple users logged in at the same time. But for the personal computer and most of the embedded device is enough.
+
+2. Use MIT-MAGIC-COOKIE-1
+
+	> Tip: If you run `./mkconfig.sh` without `--enable-xsec` at compile time, mydm will not support it.
+
+	You can use `-A` option to enforce the authority method. For more about MIT-MAGIC-COOKIE-1, see Xsecurity(7) manpage.
 
 ### Set the default X Client
 
@@ -28,7 +34,7 @@ X Client can be set at runtime by cmdline, but you can set a default X client be
 If you do not set it, default X client will be set to 'startxfce4'
 
 ```
-./mkconfig.sh --default-xclient=gnome-session
+./mkconfig.sh --enable-xsec --default-xclient=gnome-session
 ```
 
 ### Do not want to install libx11-dev?
