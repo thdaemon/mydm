@@ -31,5 +31,9 @@ config.h :
 install : all
 	cp mydm $(PREFIX)$(INSTALLDIR)/mydm
 
+bin-tar : all
+	./pkgsrc/mkbintar.sh
+
 clean:
 	rm -f *.o mydm config.h *.so
+	rm -rf build-package

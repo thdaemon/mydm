@@ -2,3 +2,4 @@
 config.h
 mydm
 *.so
+build-package
