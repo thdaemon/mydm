@@ -32,7 +32,7 @@ static char* save_evs[] = { "DISPLAY", "PATH", "TERM", "LANG", "LANGUAGE", "LC_C
                             "LC_NUMERIC", "LC_TIME", "LC_COLLATE", "LC_MONETARY",
                             "LC_MESSAGES", "LC_PAPER", "LC_NAME", "LC_ADDRESS",
                             "LC_TELEPHONE", "LC_MEASUREMENT", "LC_IDENTIFICATION",
-                            "LC_ALL" };
+                            "LC_ALL", "XAUTHORITY" };
 
 static char* save_evs_values[sizeof(save_evs) / sizeof(char*)];
 
