@@ -6,7 +6,7 @@ read -p "The arch? (e.g. i386, armhf, amd64, etc): " arch
 
 name="mydm-linux-glibc-${arch}"
 
-rm -rf build-package
+rm -rf build-package/${name}*
 mkdir -p build-package/${name}
 
 cp mydm build-package/${name}/mydm
@@ -19,5 +19,5 @@ Version: `cat version`
 WARNING: This binary version may work incorrectly on your system, so if you encounter problems, you should build this project from source at first.
 EOF
 
-(cd build-package; tar cvfJ ${name}.tar.xz ${name}/)
+(cd build-package; tar cvfJ "${name}.tar.xz" "${name}/")
 rm -r build-package/${name}

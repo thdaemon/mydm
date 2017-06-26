@@ -34,6 +34,9 @@ install : all
 bin-tar : all
 	./pkgsrc/mkbintar.sh
 
+deb : all
+	./pkgsrc/mkdeb.sh
+
 clean:
 	rm -f *.o mydm config.h *.so
 	rm -rf build-package
