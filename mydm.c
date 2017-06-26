@@ -89,7 +89,36 @@ void sig_term(int signo)
 	//killxsvr();
 }
 
-int main(int argc, char* argv[])
+int exec_xserver(char *xserver, char *display, char *vt, int use_xauth, int argc, char *argv[])
+{
+	int exargs = 0;
+
+	if (use_xauth)
+		exargs += 2;
+
+	char *srv_argv[argc + exargs + 6];
+
+	srv_argv[0] = xserver;
+	srv_argv[1] = display;
+	srv_argv[2] = vt;
+	srv_argv[3] = "-nolisten";
+	srv_argv[4] = "tcp";
+
+	if (use_xauth) {
+		srv_argv[5] = "-auth";
+		srv_argv[6] = getenv("XAUTHORITY");
+	}
+
+	for (int i = 0; i < argc; i++) {
+		srv_argv[i + exargs + 5] = argv[i];
+	}
+
+	srv_argv[argc + exargs + 5] = NULL;
+
+	return execvp(xserver, srv_argv);
+}
+
+int main(int argc, char *argv[])
 {
 	int opt, no_system_su = 0, arg_use_xauth = 0;
 	pid_t pid;
@@ -132,7 +161,10 @@ int main(int argc, char* argv[])
 			break;
 		case 'h':
 		case '?':
-			printf("Usage: %s [-d display] [-v vt] [-c program] [-r program] [-s program] [-u username] [-l login] [-n] [-A] [-h]\n"
+			printf("mydm Display Manager version %s\nCopyright (C) Tian Hao <thxdaemon@gmail.com>\n"
+			       "It is an opensource (free) software. This software is "
+			       "published under the GNU GPLv3 license.\n\n", PROJECT_VERSION);
+			printf("Usage: %s [-d|-v|-c|-r|-s|-u|-l|-n|-A|-h] -- server options\n"
 			 " OPTIONS \n"
 			 "	-d display         Display name, default ':0' \n"
 			 "	-v vt              VT number, default 'vt7'\n"
@@ -144,10 +176,12 @@ int main(int argc, char* argv[])
 			 "	-n                 Do not use the su command of system (default used)\n"
 			 "	-A                 Use MIT-MAGIC-COOKIE-1 XSecurity\n"
 			 "	-h                 Show this usage\n"
+			 "\n SERVER OPTIONS\n"
+			 "	The additional options to X server. e.g. -depth x\n"
 			 "\n EXAMPLES\n"
 			 "	%s -d :0 -c gnome-session -u my_user_name\n"
-			 "	%s -d :2 -v vt3 -c xterm -r 'exec metacity'\n"
-			 "	%s -c '/path/to/myde_init.sh' -r 'exec /path/to/myde_autostart.sh' -u my_user_name\n"
+			 "	%s -d :2 -v vt3 -c xterm -r metacity\n"
+			 "	%s -c '/path/to/myde_init.sh' -u my_user_name -n\n"
 			 , argv[0], argv[0], argv[0], argv[0]);
 			exit(0);
 			break;
@@ -165,7 +199,8 @@ int main(int argc, char* argv[])
 	my_signal_cld_ign(SIGINT, sig_term, 1);
 
 	/* when arg_user is null, it will use the uid of process's */
-	if (xauth_magic_cookie_prepare_filename(arg_user, NULL) < 0)
+	if (arg_use_xauth && 
+	    (xauth_magic_cookie_prepare_filename(arg_user, NULL) < 0))
 		err_quit("xauth_magic_cookie_prepare_filename");
 
 	block_signal(SIGCHLD);
@@ -182,12 +217,7 @@ int main(int argc, char* argv[])
 
 		my_signal(SIGUSR1, SIG_IGN, 1);
 
-		if (arg_use_xauth) {
-			execlp(arg_xserver, arg_xserver, arg_display, arg_vt,
-			       "-auth", getenv("XAUTHORITY"), "-nolisten", "tcp", 0);
-		} else {
-			execlp(arg_xserver, arg_xserver, arg_display, arg_vt, "-nolisten", "tcp", 0);
-		}
+		exec_xserver(arg_xserver, arg_display, arg_vt, arg_use_xauth, argc - optind, &argv[optind]);
 		fprintf(stderr, "exec X server error: %s\n", strerror(errno));
 
 		exit(1);
@@ -212,7 +242,8 @@ int main(int argc, char* argv[])
 	XCloseDisplay(display);
 
 	/* when arg_user is null, it will use the uid of process's */
-	if (xauth_magic_cookie_gen(arg_display, arg_user) < 0) {
+	if (arg_use_xauth && 
+	    (xauth_magic_cookie_gen(arg_display, arg_user) < 0)) {
 		fprintf(stderr, "Cannot generate a magic cookie\n");
 		killxsvr();
 		exit(1);
@@ -251,16 +282,7 @@ int main(int argc, char* argv[])
 				exit(1);
 			}
 		}
-/*
-		size_t length = strlen(arg_xclient) + 6;
-		char* command = malloc(length);
-		if (command == NULL) {
-			fprintf(stderr, "malloc: %s", strerror(ENOMEM));
-			killxsvr();
-			exit(1);
-		}
-		snprintf(command, length, "exec %s", arg_xclient);
-*/
+
 		exec_try_login_user(arg_user, arg_xclient, no_system_su);
 		if (cpid)
 			kill(cpid, SIGTERM);

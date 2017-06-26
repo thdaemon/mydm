@@ -2,8 +2,11 @@
 
 is_int_or_float()
 {
-	echo $1 | grep "[^\.0-9]" > /dev/null 2>&1 && return 1
-	return 0
+	local rval=0
+
+	echo $1 | grep "[^\.0-9]" > /dev/null 2>&1 && rval=1
+	echo $1 | grep "^.*\..*\..*$" > /dev/null 2>&1 && rval=1
+	return ${rval}
 }
 
 add_macro()
@@ -41,6 +44,8 @@ while true ; do
 
 	shift
 done
+
+add_macro PROJECT_VERSION `cat version`
 
 cat >> config.h << EOF
 
