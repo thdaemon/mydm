@@ -5,6 +5,7 @@
  */
 
 #define _POSIX_C_SOURCE 200819L
+#define _XOPEN_SOURCE 700
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,11 +70,11 @@ int exec_try_login_user(char* username, char* file, int no_system_su)
 				fprintf(stderr, "Can not login user '%s'\n", username);
 				return -1;
 			}
-			return execlp(file, file, 0);
+			return execlp(file, file, NULL);
 		} else {
-			return execlp("su", "su", "-", username, "-c", file, 0);
+			return execlp("su", "su", "-", username, "-c", file, NULL);
 		}
 	} else {
-		return execlp(file, file, 0);
+		return execlp(file, file, NULL);
 	}
 }

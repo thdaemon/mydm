@@ -1,5 +1,7 @@
 ## Do not want to install libx11-dev?
 
+> It only applies to linux, does not apply to freebsd
+
 > Warning: it is not suggested! It is better if you install libx11-dev. And you can uninstall it after compiling.
 
 When you compile mydm, libx11-dev may be needed because mydm use some headers of Xlib's.
