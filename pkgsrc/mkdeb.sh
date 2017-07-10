@@ -4,15 +4,15 @@ read -p "The arch? (e.g. i386, armhf, amd64, etc): " arch
 
 [ "$arch" = '' ] && exit 1
 
-name="mydm-linux-glibc-${arch}"
+name="mydm-linux-glibc-${arch}-`cat version`"
 
-rm -rf build-package/${name}*
-mkdir -p build-package/${name}/usr/local/bin/
-mkdir -p build-package/${name}/DEBIAN
+rm -rf build-package/${name}_deb build-package/${name}.deb
+mkdir -p build-package/${name}_deb/usr/local/bin/
+mkdir -p build-package/${name}_deb/DEBIAN
 
-cp mydm build-package/${name}/usr/local/bin/mydm
+cp mydm build-package/${name}_deb/usr/local/bin/mydm
 
-cat > build-package/${name}/DEBIAN/control << EOF
+cat > build-package/${name}_deb/DEBIAN/control << EOF
 Package: mydm
 Version: `cat version`
 Architecture: ${arch}
@@ -31,5 +31,5 @@ Description: Mydm - A simple and lightweight display manager for Linux
  2. Use MIT-MAGIC-COOKIE-1: You can use -A option to enforce the authority method. For more about MIT-MAGIC-COOKIE-1, see Xsecurity(7) manpage.
 EOF
 
-(cd build-package; dpkg-deb -b "${name}" "${name}.deb")
-rm -r build-package/${name}
+(cd build-package; dpkg-deb -b "${name}_deb" "${name}.deb")
+rm -r build-package/${name}_deb
