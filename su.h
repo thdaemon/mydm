@@ -4,7 +4,7 @@
  * It is a opensource (free) software
  */
 
-#ifndef __SU_H
+#ifndef __SU_H_
 #define __SU_H_
 
 int switch_user(char* username);

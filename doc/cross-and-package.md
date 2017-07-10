@@ -1,5 +1,7 @@
 ## Cross compiling and building packages
 
+> It only applies to linux, does not apply to freebsd
+
 ### Cross compiling
 
 You can use `CROSS` to set the cross compiler, for example

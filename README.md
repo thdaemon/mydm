@@ -1,12 +1,20 @@
 ## Mydm
 
-A simple and lightweight display manager for Linux
+A simple and lightweight display manager for Linux/Unix
 
 ```
 cd path-to-mydm-src
 ./mkconfig.sh --enable-xsec
 make
 sudo make install
+```
+
+On FreeBSD, you need use `gmake` instead of `make`.
+
+And if you do not want to install gcc, you can use FreeBSD clang compiler
+
+```
+gmake CC="cc -I/usr/local/include" LDFLAGS="-lX11 -L/usr/local/lib"
 ```
 
 For usage, run `mydm -h`
@@ -47,7 +55,7 @@ If you do not set it, default X client will be set to 'xterm'
 ./mkconfig.sh --enable-xsec --default-xclient=startxfce4
 ```
 
-### Do not want to install libx11-dev?
+### Do not want to install libx11-dev (Linux only)?
 
 > Warning: it is not suggested! It is better if you install libx11-dev. And you can uninstall it after compiling.
 
