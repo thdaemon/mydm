@@ -28,12 +28,16 @@ extern int killxsvr();
 #ifdef CONFIG_ENABLE_XSEC
 static int setenv_XAUTHORITY(const char *xauth_file, const char* home)
 {
-	if (xauth_file)
+	if (xauth_file) {
+		mydm_print("Xauthority file name: %s\n", xauth_file);
 		return setenv("XAUTHORITY", xauth_file, 1);
+	}
 
 	char filename[PATH_MAX + 1];
 
 	snprintf(filename, PATH_MAX, "%s/.Xauthority", home);
+
+	mydm_print("Xauthority file name: %s\n", filename);
 	return setenv("XAUTHORITY", filename, 1);
 }
 
@@ -80,7 +84,7 @@ int xauth_magic_cookie_gen(const char *display, const char *username)
 		my_signal(SIGTTOU, SIG_IGN, 1);
 
 		execlp("xauth", "xauth", "generate", display, "MIT-MAGIC-COOKIE-1", NULL);
-		fprintf(stderr, "exec xauth error: %s\n", strerror(errno));
+		mydm_print("exec xauth error: %s\n", strerror(errno));
 
 		return -1;
 	}
@@ -94,7 +98,7 @@ int xauth_magic_cookie_gen(const char *display, const char *username)
 	unblock_signal(SIGCHLD);
 
 	if ((!WIFEXITED(status)) || (WEXITSTATUS(status) != 0)) {
-		fprintf(stderr, "xauth_magic_cookie_gen: xauth exited failed.\n");
+		mydm_print("xauth_magic_cookie_gen: xauth exited failed.\n");
 		return -1;
 	}
 
@@ -109,10 +113,12 @@ int xauth_magic_cookie_gen(const char *display, const char *username)
 #else
 void uncompiled_function(const char* name, int kill_server)
 {
-	fprintf(stderr, "%s: this feature is not compiled.\n", name);
-	if (kill_server)
+	mydm_print("%s: this feature is not compiled.\n", name);
+	if (kill_server) {
 		killxsvr();
-	exit(1);
+	} else {
+		while (1) pause();
+	}
 }
 
 int xauth_magic_cookie_prepare_filename(const char *username, const char *xauth_file)

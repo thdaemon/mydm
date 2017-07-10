@@ -1,13 +1,14 @@
 /*
  * Copyright Tian Hao <thxdaemon@gmail.com>
  * License: GPLv3
- * It is a opensource (free) software
+ * It is an opensource (free) software
  */
 
 #ifndef __TOOLS_H_
 #define __TOOLS_H_
 
 void err_quit(char* msg);
+ssize_t mydm_print(char* fmt, ...);
 void* my_signal(int signum, void* handler, int restartsyscall);
 int unblock_signal(int signum);
 int block_signal(int signum);

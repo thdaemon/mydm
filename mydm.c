@@ -3,7 +3,7 @@
  * License: GPLv3
  * It is an opensource (free) software
  *
- * A Simple Display Manager for Linux, it will start a Xorg Server and log a user to run X Client
+ * A Simple Display Manager for Linux/Unix, it will start a Xorg Server and log a user to run X Client
  */
 
 #define _POSIX_C_SOURCE 200819L
@@ -33,7 +33,7 @@ extern int XCloseDisplay(Display*);
 #include "xsec.h"
 
 #ifndef CONFIG_DEFAULT_XCLIENT
-#define CONFIG_DEFAULT_XCLIENT "startxfce4"
+#define CONFIG_DEFAULT_XCLIENT "xterm"
 #endif /* CONFIG_DEFAULT_XCLIENT */
 
 int xstart = 0;
@@ -41,13 +41,13 @@ pid_t xsvrpid = 0, xclipid = 0;
 
 int killxsvr()
 {
-	fprintf(stderr, "killing X server\n");
+	mydm_print("killing X server\n");
 	return kill(xsvrpid, SIGTERM);
 }
 
 void sig_user1(int signo)
 {
-	fprintf(stderr, "X server should be in running\n");
+	mydm_print("X server should be in running\n");
 	xstart = 1;
 }
 
@@ -70,20 +70,20 @@ void sig_child(int signo)
 		return;
 
 	if (pid == xsvrpid) {
-		fprintf(stderr, "X server exited\n");
+		mydm_print("X server exited\n");
 		exit(0);
 	}
 
 	if (pid == xclipid) {
-		fprintf(stderr, "X client exited\n");
+		mydm_print("X client exited\n");
 		killxsvr();
-		exit(0);
+		//exit(0);
 	}
 }
 
 void sig_term(int signo)
 {
-	fprintf(stderr, "catch SIGTERM/SIGINT, exiting\n");
+	mydm_print("catch SIGTERM/SIGINT, exiting\n");
 	if (xclipid)
 		kill(xclipid, SIGTERM);
 	//killxsvr();
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
 		my_signal(SIGUSR1, SIG_IGN, 1);
 
 		exec_xserver(arg_xserver, arg_display, arg_vt, arg_use_xauth, argc - optind, &argv[optind]);
-		fprintf(stderr, "exec X server error: %s\n", strerror(errno));
+		mydm_print("exec X server error: %s\n", strerror(errno));
 
 		exit(1);
 	}
@@ -234,9 +234,9 @@ int main(int argc, char *argv[])
 
 	/* Can the display connect? */
 	if ((display = XOpenDisplay(arg_display)) == NULL) {
-		fprintf(stderr, "Cannot open display\n");
+		mydm_print("Cannot open display\n");
 		killxsvr();
-		exit(1);
+		while (1) pause();
 	}
 
 	XCloseDisplay(display);
@@ -244,9 +244,9 @@ int main(int argc, char *argv[])
 	/* when arg_user is null, it will use the uid of process's */
 	if (arg_use_xauth && 
 	    (xauth_magic_cookie_gen(arg_display, arg_user) < 0)) {
-		fprintf(stderr, "Cannot generate a magic cookie\n");
+		mydm_print("Cannot generate a magic cookie\n");
 		killxsvr();
-		exit(1);
+		while (1) pause();
 	}
 
 	setenv("DISPLAY", arg_display, 1);
@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
 
 			if (cpid == 0) {
 				exec_try_login_user(arg_user, arg_run, no_system_su);
-				fprintf(stderr, "exec %s error: %s\n", arg_run, strerror(errno));
+				mydm_print("exec %s error: %s\n", arg_run, strerror(errno));
 				kill(getppid(), SIGTERM);
 				exit(1);
 			}
@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
 		exec_try_login_user(arg_user, arg_xclient, no_system_su);
 		if (cpid)
 			kill(cpid, SIGTERM);
-		fprintf(stderr, "exec X client '%s' error: %s\n", arg_xclient, strerror(errno));
+		mydm_print("exec X client '%s' error: %s\n", arg_xclient, strerror(errno));
 		exit(1);
 	}
 

@@ -1,7 +1,7 @@
 /*
  * Copyright Tian Hao <thxdaemon@gmail.com>
  * License: GPLv3
- * It is a opensource (free) software
+ * It is an opensource (free) software
  */
 
 #define _POSIX_C_SOURCE 200819L
@@ -25,6 +25,27 @@ void err_quit(char* msg)
 {
 	perror(msg);
 	exit(1);
+}
+
+ssize_t mydm_print(char* fmt, ...)
+{
+	int fd;
+	va_list ap;
+	char buff[1024];
+	ssize_t retval;
+
+	fd = STDERR_FILENO;
+	retval = 0;
+
+	va_start(ap, fmt);
+	vsnprintf(buff, sizeof(buff), fmt, ap);
+
+	if (write(fd, "[mydm] ", 7) != 7) return -1;
+	retval = write(fd, buff, strlen(buff));
+
+	va_end(ap);
+
+	return retval;
 }
 
 void* my_signal(int signum, void* handler, int restartsyscall)
@@ -66,7 +87,7 @@ int exec_try_login_user(char* username, char* file, int no_system_su)
 	if (username) {
 		if (no_system_su) {
 			if (switch_user(username) < 0) {
-				fprintf(stderr, "Can not login user '%s'\n", username);
+				mydm_print("Can not login user '%s'\n", username);
 				return -1;
 			}
 			return execlp(file, file, 0);

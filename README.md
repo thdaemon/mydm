@@ -41,10 +41,10 @@ If you want to learn to cross compile this project or build a binary package, pl
 
 X Client can be set at runtime by cmdline, but you can set a default X client before build
 
-If you do not set it, default X client will be set to 'startxfce4'
+If you do not set it, default X client will be set to 'xterm'
 
 ```
-./mkconfig.sh --enable-xsec --default-xclient=gnome-session
+./mkconfig.sh --enable-xsec --default-xclient=startxfce4
 ```
 
 ### Do not want to install libx11-dev?
