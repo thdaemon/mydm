@@ -66,11 +66,6 @@ void sig_user1(int signo)
 	xstart = 1;
 }
 
-void sig_user2(int signo)
-{
-	greeter_mode = 0;
-}
-
 void sig_child(int signo)
 {
 	int status;
@@ -228,7 +223,6 @@ work_start:
 	my_signal_cld_reset(SIGTERM, sig_term, 1);
 	my_signal_cld_reset(SIGCHLD, sig_child, 1);
 	my_signal_cld_reset(SIGUSR1, sig_user1, 1);
-	my_signal_cld_reset(SIGUSR2, sig_user2, 1);
 
 	my_signal_cld_ign(SIGINT, sig_term, 1);
 
@@ -251,7 +245,6 @@ work_start:
 		my_signal(SIGTTOU, SIG_IGN, 1);
 
 		my_signal(SIGUSR1, SIG_IGN, 1);
-		my_signal_cld_reset(SIGUSR2, SIG_DFL, 1);
 
 		exec_xserver(arg_xserver, arg_display, arg_vt, arg_use_xauth, argc - optind, &argv[optind]);
 		mydm_print("exec X server error: %s\n", strerror(errno));
@@ -310,7 +303,6 @@ work_start:
 		my_signal_cld_reset(SIGTERM, SIG_DFL, 1);
 		my_signal_cld_reset(SIGCHLD, SIG_DFL, 1);
 		my_signal_cld_reset(SIGUSR1, SIG_DFL, 1);
-		my_signal_cld_reset(SIGUSR2, SIG_DFL, 1);
 
 		setpgid(getpid(), getpid());
 
