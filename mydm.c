@@ -42,7 +42,7 @@ pid_t xsvrpid = 0, xclipid = 0, mydm_pid = 0;
 
 void mydmexit(int code)
 {
-	if (greeter_mode) {
+	if (xstart && greeter_mode) {
 		repause = 0;
 		return;
 	}
@@ -238,6 +238,7 @@ work_start:
 		err_quit("xauth_magic_cookie_prepare_filename");
 
 	block_signal(SIGCHLD);
+	INIT_PIPE();
 	if ((pid = fork()) < 0)
 		err_quit("fork");
 
@@ -256,10 +257,13 @@ work_start:
 		mydm_print("exec X server error: %s\n", strerror(errno));
 
 		/* prevents restart of the session on greeter mode */
-		kill(mydm_pid, SIGUSR2);
+		TELL_PARENT();
 
 		exit(1);
 	}
+
+	if (WAIT_CHILD() < 0)
+		greeter_mode = 0;
 
 	xsvrpid = pid;
 	unblock_signal(SIGCHLD);
@@ -290,6 +294,7 @@ work_start:
 	setenv("DISPLAY", arg_display, 1);
 
 	block_signal(SIGCHLD);
+	INIT_PIPE();
 	if ((pid = fork()) < 0) {
 		killxsvr();
 		err_quit("fork");
@@ -319,7 +324,7 @@ work_start:
 				mydm_print("exec %s error: %s\n", arg_run, strerror(errno));
 
 				/* prevents restart of the session on greeter mode */
-				kill(mydm_pid, SIGUSR2);
+				TELL_PARENT();
 
 				kill(getppid(), SIGTERM);
 				exit(1);
@@ -332,10 +337,13 @@ work_start:
 		mydm_print("exec X client '%s' error: %s\n", arg_xclient, strerror(errno));
 
 		/* prevents restart of the session on greeter mode */
-		kill(mydm_pid, SIGUSR2);
+		TELL_PARENT();
 
 		exit(1);
 	}
+
+	if (WAIT_CHILD() < 0)
+		greeter_mode = 0;
 
 	xclipid = pid;
 	unblock_signal(SIGCHLD);

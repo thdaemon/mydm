@@ -17,4 +17,9 @@ int exec_try_login_user(char* username, char* file, int no_system_su);
 #define my_signal_cld_reset my_signal
 #define my_signal_cld_ign my_signal
 
+/* WARNING: These functions are not multi-threaded security and asynchronous signal security */
+void INIT_PIPE();
+void TELL_PARENT();
+int WAIT_CHILD();
+
 #endif /* __TOOLS_H_ */

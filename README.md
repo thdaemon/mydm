@@ -21,7 +21,7 @@ For usage, run `mydm -h`
 
 **Runtime dependent**: glibc, libx11
 
-**Compiling dependent**: GNU GCC, GNU Make, libx11-dev (optional), shell, etc.
+**Compiling dependent**: GNU Make, GCC or other c99-supported compilers, libx11-dev (optional), shell, etc.
 
 ### Binary Release
 

@@ -101,3 +101,44 @@ int exec_try_login_user(char* username, char* file, int no_system_su)
 		return execlp(file, file, NULL);
 	}
 }
+
+int pipefd[2];
+
+void INIT_PIPE()
+{
+	int flags;
+
+	if (pipe(pipefd) < 0)
+		err_quit("pipe");
+
+	flags = fcntl(pipefd[0], F_GETFD);
+	flags |= FD_CLOEXEC;
+	fcntl(pipefd[0], F_SETFD, flags);
+
+	flags = fcntl(pipefd[1], F_GETFD);
+	flags |= FD_CLOEXEC;
+	fcntl(pipefd[1], F_SETFD, flags);
+}
+
+void TELL_PARENT()
+{
+	close(pipefd[0]);
+	errno = 0;
+	while ((write(pipefd[1], "e", 1) != 1) && (errno == EINTR));
+	close(pipefd[1]);
+}
+
+int WAIT_CHILD()
+{
+	char c = 0;
+
+	close(pipefd[1]);
+	errno = 0;
+	while ((read(pipefd[0], &c, 1) < 0) && (errno == EINTR));
+	close(pipefd[0]);
+
+	if (c == 'e')
+		return -1;
+
+	return 0;
+}
