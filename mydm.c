@@ -270,6 +270,10 @@ work_start:
 	/* Can the display connect? */
 	if ((display = XOpenDisplay(arg_display)) == NULL) {
 		mydm_print("Cannot open display\n");
+
+		/* prevents restart of the session on greeter mode */
+		greeter_mode = 0;
+
 		killxsvr();
 		while (1) pause();
 	}
@@ -280,6 +284,10 @@ work_start:
 	if (arg_use_xauth && 
 	    (xauth_magic_cookie_gen(arg_display, arg_user) < 0)) {
 		mydm_print("Cannot generate a magic cookie\n");
+
+		/* prevents restart of the session on greeter mode */
+		greeter_mode = 0;
+
 		killxsvr();
 		while (1) pause();
 	}
