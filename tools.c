@@ -22,10 +22,12 @@
 #include "su.h"
 #include "tools.h"
 
+extern int killxsvr();
+
 void err_quit(char* msg)
 {
 	perror(msg);
-	exit(1);
+	killxsvr();
 }
 
 ssize_t mydm_print(char* fmt, ...)

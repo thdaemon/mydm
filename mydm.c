@@ -36,19 +36,39 @@ extern int XCloseDisplay(Display*);
 #define CONFIG_DEFAULT_XCLIENT "xterm"
 #endif /* CONFIG_DEFAULT_XCLIENT */
 
-int xstart = 0;
-pid_t xsvrpid = 0, xclipid = 0;
+/* when repause set to 0, after interrupt, mydm go back to the start of the work. */
+int xstart = 0, greeter_mode = 0, repause = 1;
+pid_t xsvrpid = 0, xclipid = 0, mydm_pid = 0;
+
+void mydmexit(int code)
+{
+	if (greeter_mode) {
+		repause = 0;
+		return;
+	}
+
+	exit(code);
+}
 
 int killxsvr()
 {
-	mydm_print("killing X server\n");
-	return kill(xsvrpid, SIGTERM);
+	if (xsvrpid) {
+		mydm_print("killing X server\n");
+		return kill(xsvrpid, SIGTERM);
+	}
+
+	exit(1);
 }
 
 void sig_user1(int signo)
 {
 	mydm_print("X server should be in running\n");
 	xstart = 1;
+}
+
+void sig_user2(int signo)
+{
+	greeter_mode = 0;
 }
 
 void sig_child(int signo)
@@ -71,22 +91,24 @@ void sig_child(int signo)
 
 	if (pid == xsvrpid) {
 		mydm_print("X server exited\n");
-		exit(0);
+		mydmexit(0);
 	}
 
 	if (pid == xclipid) {
 		mydm_print("X client exited\n");
 		killxsvr();
-		//exit(0);
 	}
 }
 
 void sig_term(int signo)
 {
 	mydm_print("catch SIGTERM/SIGINT, exiting\n");
+
+	/* prevents restart of the session on greeter mode */
+	greeter_mode = 0;
+
 	if (xclipid)
 		kill(xclipid, SIGTERM);
-	//killxsvr();
 }
 
 int exec_xserver(char *xserver, char *display, char *vt, int use_xauth, int argc, char *argv[])
@@ -132,7 +154,7 @@ int main(int argc, char *argv[])
 	arg_xserver = "X";
 	arg_user = NULL;
 
-	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:nAh")) != -1) {
+	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:nAgh")) != -1) {
 		switch (opt) {
 		case 'd':
 			arg_display = (char*)optarg;
@@ -159,6 +181,9 @@ int main(int argc, char *argv[])
 		case 'A':
 			arg_use_xauth = 1;
 			break;
+		case 'g':
+			greeter_mode = 1;
+			break;
 		case 'h':
 		case '?':
 			printf("mydm Display Manager version %s\nCopyright (C) Tian Hao <thxdaemon@gmail.com>\n"
@@ -175,6 +200,7 @@ int main(int argc, char *argv[])
 			 "	-l login           Same as -u\n"
 			 "	-n                 Do not use the su command of system (default used)\n"
 			 "	-A                 Use MIT-MAGIC-COOKIE-1 XSecurity\n"
+			 "	-g                 Use greeter mode (After session exited restart it)\n"
 			 "	-h                 Show this usage\n"
 			 "\n SERVER OPTIONS\n"
 			 "	The additional options to X server. e.g. -depth x\n"
@@ -188,6 +214,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	mydm_pid = getpid();
+
+work_start:
+	xstart = 0;
+	xsvrpid = 0;
+	xclipid = 0;
+
 	my_signal(SIGQUIT, SIG_IGN, 1);
 	my_signal(SIGTSTP, SIG_IGN, 1);
 
@@ -195,6 +228,7 @@ int main(int argc, char *argv[])
 	my_signal_cld_reset(SIGTERM, sig_term, 1);
 	my_signal_cld_reset(SIGCHLD, sig_child, 1);
 	my_signal_cld_reset(SIGUSR1, sig_user1, 1);
+	my_signal_cld_reset(SIGUSR2, sig_user2, 1);
 
 	my_signal_cld_ign(SIGINT, sig_term, 1);
 
@@ -216,9 +250,13 @@ int main(int argc, char *argv[])
 		my_signal(SIGTTOU, SIG_IGN, 1);
 
 		my_signal(SIGUSR1, SIG_IGN, 1);
+		my_signal_cld_reset(SIGUSR2, SIG_DFL, 1);
 
 		exec_xserver(arg_xserver, arg_display, arg_vt, arg_use_xauth, argc - optind, &argv[optind]);
 		mydm_print("exec X server error: %s\n", strerror(errno));
+
+		/* prevents restart of the session on greeter mode */
+		kill(mydm_pid, SIGUSR2);
 
 		exit(1);
 	}
@@ -267,6 +305,7 @@ int main(int argc, char *argv[])
 		my_signal_cld_reset(SIGTERM, SIG_DFL, 1);
 		my_signal_cld_reset(SIGCHLD, SIG_DFL, 1);
 		my_signal_cld_reset(SIGUSR1, SIG_DFL, 1);
+		my_signal_cld_reset(SIGUSR2, SIG_DFL, 1);
 
 		setpgid(getpid(), getpid());
 
@@ -278,6 +317,10 @@ int main(int argc, char *argv[])
 			if (cpid == 0) {
 				exec_try_login_user(arg_user, arg_run, no_system_su);
 				mydm_print("exec %s error: %s\n", arg_run, strerror(errno));
+
+				/* prevents restart of the session on greeter mode */
+				kill(mydm_pid, SIGUSR2);
+
 				kill(getppid(), SIGTERM);
 				exit(1);
 			}
@@ -287,14 +330,22 @@ int main(int argc, char *argv[])
 		if (cpid)
 			kill(cpid, SIGTERM);
 		mydm_print("exec X client '%s' error: %s\n", arg_xclient, strerror(errno));
+
+		/* prevents restart of the session on greeter mode */
+		kill(mydm_pid, SIGUSR2);
+
 		exit(1);
 	}
 
 	xclipid = pid;
 	unblock_signal(SIGCHLD);
 
-	while (1)
+	while (repause)
 		pause();
+
+	mydm_print("Restarting a session...\n");
+	repause = 1;
+	goto work_start;
 
 	exit(0);
 }
