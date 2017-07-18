@@ -3,3 +3,5 @@ config.h
 mydm
 *.so
 build-package
+
+greeters/mydm-gtk-demo-greeter/mydm-gtk-demo-greeter

@@ -37,6 +37,13 @@ bin-tar : all
 deb : all
 	./pkgsrc/mkdeb.sh
 
+gtk_greeter:
+	@$(MAKE) -C greeters/mydm-gtk-demo-greeter
+
+gtk_greeter_install:
+	@$(MAKE) -C greeters/mydm-gtk-demo-greeter install
+
 clean:
 	rm -f *.o mydm config.h *.so
 	rm -rf build-package
+	@$(MAKE) -C greeters/mydm-gtk-demo-greeter clean
