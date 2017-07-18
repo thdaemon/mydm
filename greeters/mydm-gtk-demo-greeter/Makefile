@@ -27,4 +27,5 @@ clean:
 
 install : all
 	mkdir -p $(PREFIX)$(INSTALLDIR)/
-	cp mydm-gtk-demo-greeter mydm-gtk-demo-greeter.glade $(PREFIX)$(INSTALLDIR)/
+	cp mydm-gtk-demo-greeter deinit mydm-gtk-demo-greeter.glade $(PREFIX)$(INSTALLDIR)/
+	chmod +x $(PREFIX)$(INSTALLDIR)/mydm-gtk-demo-greeter deinit

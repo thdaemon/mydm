@@ -22,8 +22,11 @@
 
 #include <gtk/gtk.h>
 
+#include "../../su.h"
+
 
 #define GLADE_FILE_NAME "/usr/lib/mydm/mydm-gtk-demo-greeter/mydm-gtk-demo-greeter.glade"
+#define XINIT_FILE_NAME "/usr/lib/mydm/mydm-gtk-demo-greeter/deinit"
 
 GtkWidget *entry_username, *entry_password;
 GtkWidget *window;
@@ -58,6 +61,20 @@ static int auth_user(const char *username, const char *password)
 	return 0;
 }
 
+void mesbox(const gchar *message)
+{
+	GtkWidget *msgdialog;
+	gtk_widget_set_sensitive(window, FALSE);
+	msgdialog = gtk_message_dialog_new(GTK_WINDOW(window),
+		                           GTK_DIALOG_DESTROY_WITH_PARENT,
+		                           GTK_MESSAGE_ERROR,
+		                           GTK_BUTTONS_CLOSE,
+		                           "%s", message);
+	gtk_dialog_run(GTK_DIALOG(msgdialog));
+	gtk_widget_destroy(msgdialog);
+	gtk_widget_set_sensitive(window, TRUE);
+}
+
 /* window destroy */
 void on_window1_destroy()
 {
@@ -68,23 +85,22 @@ void on_window1_destroy()
 void on_button1_clicked()
 {
 	const char *username, *password;
-	GtkWidget *msgdialog;
 
 	username = gtk_entry_get_text(GTK_ENTRY(entry_username));
 	password = gtk_entry_get_text(GTK_ENTRY(entry_password));
 
 	if (auth_user(username, password) < 0) {
-		//gtk_main_quit();
-		gtk_widget_set_sensitive(window, FALSE);
-		msgdialog = gtk_message_dialog_new(GTK_WINDOW(window),
-		                                   GTK_DIALOG_DESTROY_WITH_PARENT,
-		                                   GTK_MESSAGE_ERROR,
-		                                   GTK_BUTTONS_CLOSE,
-		                                   "No such user or password wrong.");
-		gtk_dialog_run(GTK_DIALOG(msgdialog));
-		gtk_widget_destroy(msgdialog);
-		gtk_widget_set_sensitive(window, TRUE);
+		mesbox("No such user or password wrong.");
+		return;
 	}
+
+	if (switch_user(username) < 0) {
+		mesbox("Password ok but can not login the user.");
+		return;
+	}
+
+	execlp(XINIT_FILE_NAME, XINIT_FILE_NAME, NULL);
+	gtk_main_quit();
 }
 
 int main(int argc, char *argv[])

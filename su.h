@@ -7,6 +7,6 @@
 #ifndef __SU_H_
 #define __SU_H_
 
-int switch_user(char* username);
+int switch_user(const char* username);
 
 #endif /* __SU_H_ */
