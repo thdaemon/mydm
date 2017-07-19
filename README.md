@@ -9,19 +9,15 @@ make
 sudo make install
 ```
 
-On FreeBSD, you need use `gmake` instead of `make`.
-
-And if you do not want to install gcc, you can use FreeBSD clang compiler
+On FreeBSD, you need use `gmake` instead of `make`. And if you do not want to install gcc, you can use FreeBSD clang compiler
 
 ```
 gmake CC="cc -I/usr/local/include" LDFLAGS="-lX11 -L/usr/local/lib"
 ```
 
-For usage, run `mydm -h`
-
 **Runtime dependent**: glibc, libx11
 
-**Compiling dependent**: GNU GCC, GNU Make, libx11-dev (optional), shell, etc.
+**Compiling dependent**: GNU Make, GCC or other c99-supported compilers, libx11-dev (optional), shell, etc.
 
 ### Binary Release
 
@@ -29,9 +25,38 @@ mydm has .tar.xz format binary archive and .deb format Debian Package.
 
 [Go to the release page](https://github.com/thdaemon/mydm/releases)
 
-### Cross compiling and building packages
+### Usage
 
-If you want to learn to cross compile this project or build a binary package, please see [this Wiki](doc/cross-and-package.md)
+For a simple example, start the Xfce4 desktop on display: 0, the 7th virtual console as a user foo
+
+```
+# mydm -d :0 -v vt7 -c startxfce4 -u foo -n
+```
+
+Greeter mode and XSecurity please see below.
+
+Some commonly used options
+
+```
+-d display         Display name, default ':0'
+-v vt              VT number, default 'vt7'
+-c program         X client, e.g. 'xterm'
+-r program         After run x client, will run it, but do not wait it to exit, default null
+-u(-l) username    The user to login, default null (Not login)
+-n                 Do not use the su command of system (default used)
+-A                 Use MIT-MAGIC-COOKIE-1 XSecurity, See below!
+-g                 Use greeter mode (After session exited restart it), See below!
+```
+
+Add server options
+
+You can add the additional options to X server. e.g. -depth x, like this
+
+```
+# mydm -d :0 -v vt7 -c startxfce4 -u foo -n -- -depth 24
+```
+
+For more usages, please run `mydm -h`
 
 ### XSecurity
 
@@ -44,6 +69,29 @@ If you want to learn to cross compile this project or build a binary package, pl
 	> Tip: If you run `./mkconfig.sh` without `--enable-xsec` at compile time, mydm will not support it.
 
 	You can use `-A` option to enforce the authority method. For more about MIT-MAGIC-COOKIE-1, see Xsecurity(7) manpage.
+
+### Greeter mode
+
+Mydm supports greeter mode, you can use the `-g` option to activate the mode
+
+```
+# mydm -c /usr/lib/mydm/mydm-gtk-demo-greeter/mydm-gtk-demo-greeter -g
+```
+
+On greeter mode, when a session exited, mydm will restart it.
+
+So, greeter is usually a gui program, it created the login interface requires the user to enter the user name and password. I wrote a greeter demo, use gtk+, see [here](greeters/mydm-gtk-demo-greeter)
+
+To compile and install it, you can run these in top source directory
+
+```
+make gtk_greeter
+sudo make gtk_greeter_install
+```
+
+### Cross compiling and building packages
+
+If you want to learn to cross compile this project or build a binary package, please see [this Wiki](doc/cross-and-package.md)
 
 ### Set the default X Client
 

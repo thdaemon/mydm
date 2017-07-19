@@ -34,6 +34,8 @@ make bin-tar
 
 And it will ask you the target machine architecture name, enter it (such as i386) and press Enter.
 
+If you have compiled the greeter, then the binary package will be with greeter
+
 ### Build Debain packages
 
 Run
@@ -44,6 +46,10 @@ make deb
 
 And it will ask you the target machine architecture name, enter it (such as i386) and press Enter.
 
+If you have compiled the greeter, then the binary package will be with greeter
+
 ** WARNING You may need change deb depends**
 
 If the version of gcc is newer, mydm may need newer glibc. So under this circumstance, you need change `pkgsrc/deb_depends` to change depends.
+
+If the version of libgtk is newer, you need change `greeter/.../pkgsrc/deb_depends` to change depends.

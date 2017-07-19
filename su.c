@@ -54,7 +54,7 @@ static int save_env(char* value, int n)
 	return 0;
 }
 
-int switch_user(char* username)
+int switch_user(const char* username)
 {
 	struct passwd* pwd;
 

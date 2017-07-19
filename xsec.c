@@ -112,25 +112,21 @@ int xauth_magic_cookie_gen(const char *display, const char *username)
 	return 0;
 }
 #else
-void uncompiled_function(const char* name, int kill_server)
+void uncompiled_function(const char* name)
 {
 	mydm_print("%s: this feature is not compiled.\n", name);
-	if (kill_server) {
-		killxsvr();
-	} else {
-		while (1) pause();
-	}
+	killxsvr();
 }
 
 int xauth_magic_cookie_prepare_filename(const char *username, const char *xauth_file)
 {
-	uncompiled_function("xauth_magic_cookie_prepare_filename", 0);
+	uncompiled_function("xauth_magic_cookie_prepare_filename");
 	return 0;
 }
 
 int xauth_magic_cookie_gen(const char *display, const char *username)
 {
-	uncompiled_function("xauth_magic_cookie_gen", 1);
+	uncompiled_function("xauth_magic_cookie_gen");
 	return 0;
 }
 #endif /* CONFIG_ENABLE_XSEC */
