@@ -9,7 +9,11 @@ name="mydm-linux-glibc-${arch}-`cat version`"
 rm -rf build-package/${name} build-package/${name}.tar.xz
 mkdir -p build-package/${name}
 
-cp mydm build-package/${name}/mydm
+make PREFIX="`pwd`/build-package/${name}/" install
+
+if [ -x "greeters/mydm-gtk-demo-greeter/mydm-gtk-demo-greeter" ]; then
+	make PREFIX="`pwd`/build-package/${name}/" gtk_greeter_install
+fi
 
 cat > build-package/${name}/README << EOF
 Git repository: https://github.com/thdaemon/mydm

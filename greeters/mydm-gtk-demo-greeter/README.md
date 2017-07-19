@@ -23,3 +23,8 @@ You need GTK+3 to compile it.
 Screenshot:
 
 ![Screenshot](https://raw.githubusercontent.com/thdaemon/mydm/master/greeters/mydm-gtk-demo-greeter/pic/screenshot.png)
+
+### The Desktop Environment
+
+Use the script file /usr/lib/mydm/mydm-gtk-demo-greeter/deinit to set the desktop environment, the default start xterm.
+

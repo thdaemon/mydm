@@ -7,17 +7,24 @@ read -p "The arch? (e.g. i386, armhf, amd64, etc): " arch
 name="mydm-linux-glibc-${arch}-`cat version`"
 
 rm -rf build-package/${name}_deb build-package/${name}.deb
-mkdir -p build-package/${name}_deb/usr/local/bin/
+#mkdir -p build-package/${name}_deb/usr/local/bin/
 mkdir -p build-package/${name}_deb/DEBIAN
 
-cp mydm build-package/${name}_deb/usr/local/bin/mydm
+make PREFIX="`pwd`/build-package/${name}_deb/" install
+depends=`cat pkgsrc/deb_depends`
+
+if [ -x "greeters/mydm-gtk-demo-greeter/mydm-gtk-demo-greeter" ]; then
+	make PREFIX="`pwd`/build-package/${name}_deb/" gtk_greeter_install
+	depends="${depends}`cat greeters/mydm-gtk-demo-greeter/pkgsrc/deb_depends`"
+fi
+#cp mydm build-package/${name}_deb/usr/local/bin/mydm
 
 cat > build-package/${name}_deb/DEBIAN/control << EOF
 Package: mydm
 Version: `cat version`
 Architecture: ${arch}
 Maintainer: Tian Hao <thxdaemon@gmail.com>
-Depends: `cat pkgsrc/deb_depends`
+Depends: ${depends}
 Section: base
 Priority: extra
 Homepage: https://github.com/thdaemon/mydm

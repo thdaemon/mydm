@@ -29,6 +29,7 @@ config.h :
 	@false
 
 install : all
+	mkdir -p $(PREFIX)$(INSTALLDIR)
 	cp mydm $(PREFIX)$(INSTALLDIR)/mydm
 
 bin-tar : all
