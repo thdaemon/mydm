@@ -4,4 +4,5 @@ mydm
 *.so
 build-package
 
+*.glade~
 greeters/mydm-gtk-demo-greeter/mydm-gtk-demo-greeter

@@ -38,7 +38,7 @@ extern int XCloseDisplay(Display*);
 
 /* when repause set to 0, after interrupt, mydm go back to the start of the work. */
 int xstart = 0, greeter_mode = 0, repause = 1;
-pid_t xsvrpid = 0, xclipid = 0, mydm_pid = 0;
+pid_t xsvrpid = 0, xclipid = 0;
 
 void mydmexit(int code)
 {
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 			printf("mydm Display Manager version %s\nCopyright (C) Tian Hao <thxdaemon@gmail.com>\n"
 			       "It is an opensource (free) software. This software is "
 			       "published under the GNU GPLv3 license.\n\n", PROJECT_VERSION);
-			printf("Usage: %s [-d|-v|-c|-r|-s|-u|-l|-n|-A|-h] -- server options\n"
+			printf("Usage: %s [-d|-v|-c|-r|-s|-u|-l|-n|-A|-g|-h] -- server options\n"
 			 " OPTIONS \n"
 			 "	-d display         Display name, default ':0' \n"
 			 "	-v vt              VT number, default 'vt7'\n"
@@ -200,16 +200,20 @@ int main(int argc, char *argv[])
 			 "\n SERVER OPTIONS\n"
 			 "	The additional options to X server. e.g. -depth x\n"
 			 "\n EXAMPLES\n"
-			 "	%s -d :0 -c gnome-session -u my_user_name\n"
+			 "	%s -d :0 -c gnome-session -u my_user_name -n\n"
 			 "	%s -d :2 -v vt3 -c xterm -r metacity\n"
-			 "	%s -c '/path/to/myde_init.sh' -u my_user_name -n\n"
-			 , argv[0], argv[0], argv[0], argv[0]);
+			 "	%s -c /path/to/myde_init.sh -u my_user_name -n -A\n"
+			 "	%s -c /usr/lib/mydm/mydm-gtk-demo-greeter/mydm-gtk-demo-greeter -g\n"
+			 , argv[0], argv[0], argv[0], argv[0], argv[0]);
 			exit(0);
 			break;
 		}
 	}
 
-	mydm_pid = getpid();
+	if (greeter_mode && arg_use_xauth) {
+		mydm_print("-g and -A can not coexist between, XSecurity should be provided by greeter.\n");
+		exit(1);
+	}
 
 work_start:
 	xstart = 0;

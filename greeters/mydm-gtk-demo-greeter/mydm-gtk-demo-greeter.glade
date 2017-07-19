@@ -7,6 +7,7 @@
     <property name="height_request">200</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">MYDM Gtk Demo Greeter</property>
+    <property name="window_position">center</property>
     <signal name="destroy" handler="on_window1_destroy" swapped="no"/>
     <child>
       <object class="GtkFixed" id="fixed1">
@@ -30,6 +31,8 @@
             <property name="height_request">40</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="visibility">False</property>
+            <property name="input_purpose">password</property>
           </object>
           <packing>
             <property name="x">120</property>

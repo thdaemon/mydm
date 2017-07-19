@@ -14,6 +14,7 @@ all : mydm-gtk-demo-greeter
 
 mydm-gtk-demo-greeter : $(OBJS)
 	$(CROSS)$(CC) -o $@ $(OBJS) $(LDFLAGS)
+	$(CROSS)$(STRIP) -s $@
 
 mydm-gtk-demo-greeter.o : mydm-gtk-demo-greeter.c
 	$(CROSS)$(CC) -c -o $@ $(CFLAGS) mydm-gtk-demo-greeter.c -lcrypt

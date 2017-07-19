@@ -64,15 +64,15 @@ static int auth_user(const char *username, const char *password)
 void mesbox(const gchar *message)
 {
 	GtkWidget *msgdialog;
-	gtk_widget_set_sensitive(window, FALSE);
+	//gtk_widget_set_sensitive(window, FALSE);
 	msgdialog = gtk_message_dialog_new(GTK_WINDOW(window),
-		                           GTK_DIALOG_DESTROY_WITH_PARENT,
+		                           GTK_DIALOG_DESTROY_WITH_PARENT | GTK_DIALOG_MODAL,
 		                           GTK_MESSAGE_ERROR,
 		                           GTK_BUTTONS_CLOSE,
 		                           "%s", message);
 	gtk_dialog_run(GTK_DIALOG(msgdialog));
 	gtk_widget_destroy(msgdialog);
-	gtk_widget_set_sensitive(window, TRUE);
+	//gtk_widget_set_sensitive(window, TRUE);
 }
 
 /* window destroy */
