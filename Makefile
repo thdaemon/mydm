@@ -1,5 +1,5 @@
 PREFIX :=
-INSTALLDIR := /usr/local/bin
+INSTALLDIR := /usr/bin
 
 OBJS := mydm.o tools.o su.o xsec.o
 
@@ -30,7 +30,8 @@ config.h :
 
 install : all
 	mkdir -p $(PREFIX)$(INSTALLDIR)
-	cp mydm $(PREFIX)$(INSTALLDIR)/mydm
+	cp mydm mydm-greeter-xsec-run $(PREFIX)$(INSTALLDIR)/
+	chmod a+x $(PREFIX)$(INSTALLDIR)/mydm $(PREFIX)$(INSTALLDIR)/mydm-greeter-xsec-run
 
 bin-tar : all
 	./pkgsrc/mkbintar.sh

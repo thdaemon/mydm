@@ -105,14 +105,12 @@ int xauth_magic_cookie_gen(const char* username)
 	pid_t pid;
 	int status;
 	struct passwd *pwd;
-	char filename[PATH_MAX + 1];
+	char *filename;
 
 	if ((pwd = getpwnam(username)) == NULL)
 		return -1;
 
-	snprintf(filename, PATH_MAX, "%s/.Xauthority", pwd->pw_dir);
-
-	if (setenv("XAUTHORITY", filename, 1) < 0)
+	if ((filename = getenv("XAUTHORITY")) == NULL)
 		return -1;
 
 	block_signal(SIGCHLD);
@@ -134,11 +132,8 @@ int xauth_magic_cookie_gen(const char* username)
 
 	unblock_signal(SIGCHLD);
 
-	if ((!WIFEXITED(status)) || (WEXITSTATUS(status) != 0)) {
-		mesbox("XSecurity: cannot generate a magic cookie.");
+	if ((!WIFEXITED(status)) || (WEXITSTATUS(status) != 0))
 		return -1;
-	}
-
 	if (chmod(filename, S_IRUSR|S_IWUSR) < 0)
 		return -1;
 
@@ -176,6 +171,7 @@ void on_button1_clicked(GtkWidget *widget, gpointer data)
 
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(chkb_xauth))) {
 		if (xauth_magic_cookie_gen(username) < 0) {
+			mesbox("XSecurity: cannot generate a magic cookie.");
 			gtk_main_quit();
 			return;
 		}

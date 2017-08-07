@@ -1,0 +1,58 @@
+#!/bin/sh
+
+usage() {
+	cat << EOL
+Usage: $0 [options]
+  mydm greeter XSecurity wrapper
+
+  OPTIONS
+   -d, --display <DISPLAY>    the display, default :0
+   -v, --vt <VT>              the vt console numver, default vt7
+   -h, --help                 Show this usage.
+
+  EXAMPLE
+   $0 -d :0 -v vt7
+EOL
+}
+
+DISPLAY=':0'
+VT='vt7'
+GREETER=''
+XAUTHORITY=''
+
+for _tag in `seq $#` ; do
+	case "$1" in 
+	-h|--help)
+		usage
+		exit 0
+		;;
+	-d|--display)
+		DISPLAY=$2
+		shift 2
+		;;
+	-v|--vt)
+		VT=$2
+		shift 2
+		;;
+	*)
+		break
+		;;
+	esac
+done
+
+GREETER=`cat /etc/mydm/default-greeter`
+if [ "${GREETER}" = "" ]; then
+	echo 'Can not find a greeter' >&2
+	exit 1
+fi
+
+mkdir -p /run/mydm
+XAUTHORITY=`mktemp -p /run/mydm`
+if [ "${XAUTHORITY}" = "" ]; then
+	echo 'Can not create a XAUTHORITY file' >&2
+	exit 1
+fi
+
+export XAUTHORITY
+mydm -d ${DISPLAY} -v ${VT} -c ${GREETER} -g -- -auth ${XAUTHORITY}
+

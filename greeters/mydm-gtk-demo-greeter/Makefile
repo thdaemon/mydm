@@ -30,3 +30,6 @@ install : all
 	mkdir -p $(PREFIX)$(INSTALLDIR)/
 	cp mydm-gtk-demo-greeter deinit desktop_run mydm-gtk-demo-greeter.glade $(PREFIX)$(INSTALLDIR)/
 	chmod +x $(PREFIX)$(INSTALLDIR)/mydm-gtk-demo-greeter $(PREFIX)$(INSTALLDIR)/deinit $(PREFIX)$(INSTALLDIR)/desktop_run
+	mkdir -p $(PREFIX)/etc/mydm
+	cp etcfiles/* $(PREFIX)/etc/mydm
+
