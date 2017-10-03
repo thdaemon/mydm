@@ -7,9 +7,14 @@ CROSS :=
 CC := gcc
 STRIP := strip
 
-CFLAGS := -Wall -O2 -std=c99
 LDFLAGS := -lX11 -L.
 
+ifeq "$(DEBUG)" "1"
+	CFLAGS := -Wall -std=c99 -g -DDEBUG=1
+	STRIP := ""
+else
+	CFLAGS := -Wall -O2 -std=c99
+endif
 
 all : mydm
 
@@ -17,8 +22,10 @@ mydm : $(OBJS)
 	@echo "  LD	$@"
 	@$(CROSS)$(CC) -o mydm $(OBJS) $(LDFLAGS)
 
+ifneq "$(DEBUG)" "1"
 	@echo "  STRIP	$@"
 	@$(CROSS)$(STRIP) -s $@
+endif
 
 %.o : %.c config.h
 	@echo "  CC	$@"

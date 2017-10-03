@@ -62,6 +62,7 @@ int killxsvr()
 
 void sig_user1(int signo)
 {
+	dbglog("DEBUG: catch SIGUSR1\n");
 	mydm_print("X server should be in running\n");
 	xstart = 1;
 }
@@ -71,6 +72,8 @@ void sig_child(int signo)
 	int status;
 	pid_t pid;
 
+	dbglog("DEBUG: catch SIGCHLD\n");
+
 	/* FIXME: Why should I use WNOHANG???
 	 * If I don't, when xauth_magic_cookie_gen() unblock SIGCHLD, 
 	 * Linux call handler (It is not fit POSIX), but it will cause 
@@ -78,11 +81,15 @@ void sig_child(int signo)
 	 */
 	pid = waitpid(-1, &status, WNOHANG);
 
+	dbglog("DEBUG: pid is %ld\n", pid);
+
 	if ((pid == 0) || (pid == -1))
 		return;
 
-	if (waitpid(pid, NULL, WNOHANG) >= 0)
+	if (waitpid(pid, NULL, WNOHANG) >= 0) {
+		dbglog("DEBUG: unexcept pid!\n");
 		return;
+	}
 
 	if (pid == xsvrpid) {
 		mydm_print("X server exited\n");

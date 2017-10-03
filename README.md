@@ -2,6 +2,10 @@
 
 A simple and lightweight display manager for Linux/Unix
 
+**Runtime dependent**: Glibc, libX11
+
+**Compiling dependent**: GNU Make, GCC or other c99-supported compilers, libX11-dev (optional), shell, etc.
+
 ```
 cd path-to-mydm-src
 ./mkconfig.sh --enable-xsec
@@ -15,9 +19,11 @@ On FreeBSD, you need use `gmake` instead of `make`. And if you do not want to in
 gmake CC="cc -I/usr/local/include" LDFLAGS="-lX11 -L/usr/local/lib"
 ```
 
-**Runtime dependent**: glibc, libx11
+To build a debug version, you can use
 
-**Compiling dependent**: GNU Make, GCC or other c99-supported compilers, libx11-dev (optional), shell, etc.
+```
+DEBUG=1 make
+```
 
 ### Binary Release
 
