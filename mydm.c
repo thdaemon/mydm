@@ -17,6 +17,7 @@
 
 #include <unistd.h>
 #include <sys/types.h>
+#include <fcntl.h>
 #include <sys/wait.h>
 #include <signal.h>
 #include <errno.h>
@@ -40,6 +41,8 @@ extern int XCloseDisplay(Display*);
 int xstart = 0, greeter_mode = 0, repause = 1;
 pid_t xsvrpid = 0, xclipid = 0;
 
+char *arg_pidfile;
+
 void mydmexit(int code)
 {
 	if (xstart && greeter_mode) {
@@ -47,6 +50,8 @@ void mydmexit(int code)
 		return;
 	}
 
+	if (arg_pidfile)
+		unlink(arg_pidfile);
 	exit(code);
 }
 
@@ -155,8 +160,9 @@ int main(int argc, char *argv[])
 	arg_run = NULL;
 	arg_xserver = "X";
 	arg_user = NULL;
+	arg_pidfile = NULL;
 
-	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:nAgh")) != -1) {
+	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:nAgp:h")) != -1) {
 		switch (opt) {
 		case 'd':
 			arg_display = (char*)optarg;
@@ -186,12 +192,15 @@ int main(int argc, char *argv[])
 		case 'g':
 			greeter_mode = 1;
 			break;
+		case 'p':
+			arg_pidfile = (char*)optarg;
+			break;
 		case 'h':
 		case '?':
 			printf("mydm Display Manager version %s\nCopyright (C) Tian Hao <thxdaemon@gmail.com>\n"
 			       "It is an opensource (free) software. This software is "
 			       "published under the GNU GPLv3 license.\n\n", PROJECT_VERSION);
-			printf("Usage: %s [-d|-v|-c|-r|-s|-u|-l|-n|-A|-g|-h] -- server options\n"
+			printf("Usage: %s [-d|-v|-c|-r|-s|-u|-l|-n|-A|-g|-p|-h] -- server options\n"
 			 " OPTIONS \n"
 			 "	-d display         Display name, default ':0' \n"
 			 "	-v vt              VT number, default 'vt7'\n"
@@ -203,6 +212,7 @@ int main(int argc, char *argv[])
 			 "	-n                 Do not use the su command of system (default used)\n"
 			 "	-A                 Use MIT-MAGIC-COOKIE-1 XSecurity\n"
 			 "	-g                 Use greeter mode (After session exited restart it)\n"
+			 "	-p pidfile         Create and lock a pid file, default null\n"
 			 "	-h                 Show this usage\n"
 			 "\n SERVER OPTIONS\n"
 			 "	The additional options to X server. e.g. -depth x\n"
@@ -220,6 +230,22 @@ int main(int argc, char *argv[])
 	if (greeter_mode && arg_use_xauth) {
 		mydm_print("-g and -A can not coexist between, XSecurity should be provided by greeter.\n");
 		exit(1);
+	}
+
+	if (arg_pidfile != NULL) {
+		int fd;
+		char pid[40];
+
+		if ((fd = open(arg_pidfile, O_RDWR | O_CREAT, 0644)) < 0)
+			err_quit("Can not create pid file");
+
+		if (lock(fd) < 0)
+			err_quit("lock file");
+
+		snprintf(pid, sizeof(pid), "%ld", (long) getpid());
+
+		if (write(fd, pid, strlen(pid)) < 0)
+			err_quit("write");
 	}
 
 work_start:

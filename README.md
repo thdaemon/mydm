@@ -52,6 +52,7 @@ Some commonly used options
 -n                 Do not use the su command of system (default used)
 -A                 Use MIT-MAGIC-COOKIE-1 XSecurity, See below!
 -g                 Use greeter mode (After session exited restart it), See below!
+-p pidfile         Create and lock a pid file, default null
 ```
 
 Add server options

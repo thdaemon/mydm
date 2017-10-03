@@ -85,6 +85,26 @@ int block_signal(int signum)
 	return sigprocmask(SIG_BLOCK, &set, &oset);
 }
 
+int lock(int fd)
+{
+	struct flock lock;
+	lock.l_type = F_WRLCK;
+	lock.l_whence = SEEK_SET;
+	lock.l_start = 0;
+	lock.l_len = 0;
+	return fcntl(fd,F_SETLK,&lock);
+}
+
+int unlock(int fd)
+{
+	struct flock lock;
+	lock.l_type = F_UNLCK;
+	lock.l_whence = SEEK_SET;
+	lock.l_start = 0;
+	lock.l_len = 0;
+	return fcntl(fd,F_SETLK,&lock);
+}
+
 int exec_try_login_user(char* username, char* file, int no_system_su)
 {
 	if (username) {

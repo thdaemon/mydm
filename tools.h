@@ -12,6 +12,8 @@ ssize_t mydm_print(char* fmt, ...);
 void* my_signal(int signum, void* handler, int restartsyscall);
 int unblock_signal(int signum);
 int block_signal(int signum);
+int lock(int fd);
+int unlock(int fd);
 int exec_try_login_user(char* username, char* file, int no_system_su);
 
 #define my_signal_cld_reset my_signal
