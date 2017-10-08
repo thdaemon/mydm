@@ -45,7 +45,9 @@ while true ; do
 	shift
 done
 
-add_macro PROJECT_VERSION `cat version`
+version_extend=' (Developer Build)'
+[ "$RELEASE" = "1" ] && version_extend=''
+add_macro PROJECT_VERSION "`cat version`${version_extend}"
 
 cat >> config.h << EOF
 

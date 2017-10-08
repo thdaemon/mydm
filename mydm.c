@@ -150,7 +150,7 @@ int exec_xserver(char *xserver, char *display, char *vt, int use_xauth, int argc
 
 int main(int argc, char *argv[])
 {
-	int opt, no_system_su = 0, arg_use_xauth = 0, arg_run_daemon = 0;
+	int opt, no_system_su = 0, arg_use_xauth = 0, arg_run_daemon = 0, arg_xclient_setsid = 0;
 	pid_t pid;
 	Display* display;
 	char *arg_display, *arg_vt, *arg_xclient, *arg_run, *arg_xserver, *arg_user;
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
 	arg_user = NULL;
 	arg_pidfile = NULL;
 
-	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:nAgp:Dh")) != -1) {
+	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:nAgp:DSh")) != -1) {
 		switch (opt) {
 		case 'd':
 			arg_display = (char*)optarg;
@@ -199,12 +199,15 @@ int main(int argc, char *argv[])
 		case 'D':
 			arg_run_daemon = 1;
 			break;
+		case 'S':
+			arg_xclient_setsid = 1;
+			break;
 		case 'h':
 		case '?':
 			printf("mydm Display Manager version %s\nCopyright (C) Tian Hao <thxdaemon@gmail.com>\n"
 			       "It is an opensource (free) software. This software is "
 			       "published under the GNU GPLv3 license.\n\n", PROJECT_VERSION);
-			printf("Usage: %s [-d|-v|-c|-r|-s|-u|-l|-n|-A|-g|-p|-D|-h] -- server options\n"
+			printf("Usage: %s [-d|-v|-c|-r|-s|-u|-l|-n|-A|-g|-p|-D|-S|-h] -- server options\n"
 			 " OPTIONS \n"
 			 "	-d display         Display name, default ':0' \n"
 			 "	-v vt              VT number, default 'vt7'\n"
@@ -218,6 +221,7 @@ int main(int argc, char *argv[])
 			 "	-g                 Use greeter mode (After session exited restart it)\n"
 			 "	-p pidfile         Create and lock a pid file, default null\n"
 			 "	-D                 Initialize mydm to a daemon process\n"
+			 "	-S                 Let X client setsid before executable\n"
 			 "	-h                 Show this usage\n"
 			 "\n SERVER OPTIONS\n"
 			 "	The additional options to X server. e.g. -depth x\n"
@@ -237,6 +241,9 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+	if (arg_run_daemon)
+		do_daemon();
+
 	if (arg_pidfile != NULL) {
 		int fd;
 		char pid[40];
@@ -252,9 +259,6 @@ int main(int argc, char *argv[])
 		if (write(fd, pid, strlen(pid)) < 0)
 			err_quit("write");
 	}
-
-	if (arg_run_daemon)
-		do_daemon();
 
 work_start:
 	xstart = 0;
@@ -358,6 +362,7 @@ work_start:
 		my_signal_cld_reset(SIGUSR1, SIG_DFL, 1);
 
 		setpgid(getpid(), getpid());
+		if (arg_xclient_setsid) setsid();
 
 		if (arg_run != NULL) {
 			if ((cpid = fork()) < 0) {
