@@ -32,6 +32,7 @@ extern int XCloseDisplay(Display*);
 
 #include "tools.h"
 #include "xsec.h"
+#include "daemon.h"
 
 #ifndef CONFIG_DEFAULT_XCLIENT
 #define CONFIG_DEFAULT_XCLIENT "xterm"
@@ -149,7 +150,7 @@ int exec_xserver(char *xserver, char *display, char *vt, int use_xauth, int argc
 
 int main(int argc, char *argv[])
 {
-	int opt, no_system_su = 0, arg_use_xauth = 0;
+	int opt, no_system_su = 0, arg_use_xauth = 0, arg_run_daemon = 0;
 	pid_t pid;
 	Display* display;
 	char *arg_display, *arg_vt, *arg_xclient, *arg_run, *arg_xserver, *arg_user;
@@ -162,7 +163,7 @@ int main(int argc, char *argv[])
 	arg_user = NULL;
 	arg_pidfile = NULL;
 
-	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:nAgp:h")) != -1) {
+	while ((opt = getopt(argc, argv, "d:v:c:r:s:u:l:nAgp:Dh")) != -1) {
 		switch (opt) {
 		case 'd':
 			arg_display = (char*)optarg;
@@ -195,12 +196,15 @@ int main(int argc, char *argv[])
 		case 'p':
 			arg_pidfile = (char*)optarg;
 			break;
+		case 'D':
+			arg_run_daemon = 1;
+			break;
 		case 'h':
 		case '?':
 			printf("mydm Display Manager version %s\nCopyright (C) Tian Hao <thxdaemon@gmail.com>\n"
 			       "It is an opensource (free) software. This software is "
 			       "published under the GNU GPLv3 license.\n\n", PROJECT_VERSION);
-			printf("Usage: %s [-d|-v|-c|-r|-s|-u|-l|-n|-A|-g|-p|-h] -- server options\n"
+			printf("Usage: %s [-d|-v|-c|-r|-s|-u|-l|-n|-A|-g|-p|-D|-h] -- server options\n"
 			 " OPTIONS \n"
 			 "	-d display         Display name, default ':0' \n"
 			 "	-v vt              VT number, default 'vt7'\n"
@@ -213,6 +217,7 @@ int main(int argc, char *argv[])
 			 "	-A                 Use MIT-MAGIC-COOKIE-1 XSecurity\n"
 			 "	-g                 Use greeter mode (After session exited restart it)\n"
 			 "	-p pidfile         Create and lock a pid file, default null\n"
+			 "	-D                 Initialize mydm to a daemon process\n"
 			 "	-h                 Show this usage\n"
 			 "\n SERVER OPTIONS\n"
 			 "	The additional options to X server. e.g. -depth x\n"
@@ -247,6 +252,9 @@ int main(int argc, char *argv[])
 		if (write(fd, pid, strlen(pid)) < 0)
 			err_quit("write");
 	}
+
+	if (arg_run_daemon)
+		do_daemon();
 
 work_start:
 	xstart = 0;
