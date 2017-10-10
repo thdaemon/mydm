@@ -1,7 +1,10 @@
 PREFIX :=
 INSTALLDIR := /usr/bin
+DATADIR := /usr/share/mydm
 
 OBJS := mydm.o tools.o su.o xsec.o daemon.o
+
+INSTALL_BINS := mydm mydm-greeter-xsec-run mydm-service-install
 
 CROSS :=
 CC := gcc
@@ -37,8 +40,10 @@ config.h :
 
 install : all
 	mkdir -p $(PREFIX)$(INSTALLDIR)
-	cp mydm mydm-greeter-xsec-run $(PREFIX)$(INSTALLDIR)/
-	chmod a+x $(PREFIX)$(INSTALLDIR)/mydm $(PREFIX)$(INSTALLDIR)/mydm-greeter-xsec-run
+	cp $(INSTALL_BINS) $(PREFIX)$(INSTALLDIR)/
+	chmod a+x $(INSTALL_BINS)
+	mkdir -p $(PREFIX)$(DATADIR)
+	cp share/* $(PREFIX)$(DATADIR)
 
 bin-tar : all
 	./pkgsrc/mkbintar.sh

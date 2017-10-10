@@ -1,0 +1,102 @@
+#!/bin/sh
+
+TARGET_IN_LSB='/usr/share/mydm/lsbservice.in'
+
+# Usage: __target_lsb <display> <vt> <greeter> <user>
+__target_lsb()
+{
+	local file_name=`mktemp`
+	cp "$TARGET_IN_LSB" "$file_name"
+	sed -i -e "s/__INFILE__display/${1}/g" "$file_name"
+	sed -i -e "s/__INFILE__vt/vt${2}/g" "$file_name"
+	sed -i -e "s;__INFILE__greeter;${3};g" "$file_name"
+	sed -i -e "s/__INFILE__user/${4}/g" "$file_name"
+	cp "$file_name" /etc/init.d/mydm
+	chmod 755 /etc/init.d/mydm
+	update-rc.d mydm defaults
+}
+
+# Usage: target_lsb <1=use default>
+target_lsb()
+{
+	local display
+	local vt
+	local greeter
+	local user
+
+	if ! [ "$1" = "1" ]; then
+		read -p "X server display (default: :0): " display
+		read -p "X server virtual console (default: 7): " vt
+		read -p "Greeter program (default read the /etc/mydm/default-greeter): " greeter
+		read -p "The user to run greeter (default: root): " user
+	fi
+
+	display=${display:=:0}
+	vt=${vt:=7}
+	greeter=${greeter:=`cat /etc/mydm/default-greeter`}
+	user=${user:=root}
+
+#	greeter=`echo "$greeter" | sed -e 's/\//\\\//g'`
+
+	__target_lsb "$display" "$vt" "$greeter" "$user"
+}
+
+usage()
+{
+	cat << EOF
+$0 [OPTIONS]
+
+	--target <service type>       Service type (installation target)
+	                              availables:
+				        freebsd-init (x)
+				        linux-lsb
+					linux-systemd (x)
+					unix-ueld (x)
+	--default                     All use default value
+	--help                        Show this usage
+
+EOF
+}
+
+target=''
+default=''
+
+while true ; do
+	case "$1" in
+	--target)
+		target="$2"
+		shift 2
+		;;
+	--default)
+		default='1'
+		shift
+		;;
+	--help)
+		usage
+		exit 0
+		;;
+	*)
+		break
+		;;
+	esac
+done
+
+case "$target" in
+freebsd-init)
+	echo 'ERROR: this platform is developing...'
+	;;
+linux-lsb)
+	target_lsb "$default"
+	;;
+linux-systemd)
+	echo 'ERROR: this platform is developing...'
+	;;
+unix-ueld)
+	echo 'ERROR: this platform is developing...'
+	;;
+*)
+	echo "Unknown target: $target"
+	;;
+esac
+
+exit 0

@@ -27,9 +27,7 @@ DEBUG=1 make
 
 ### Binary Release
 
-mydm has .tar.xz format binary archive and .deb format Debian Package.
-
-[Go to the release page](https://github.com/thdaemon/mydm/releases)
+mydm has .tar.xz format binary archive and .deb format Debian Package. [Go to the release page](https://github.com/thdaemon/mydm/releases)
 
 ### Usage
 
@@ -53,6 +51,8 @@ Some commonly used options
 -A                 Use MIT-MAGIC-COOKIE-1 XSecurity, See below!
 -g                 Use greeter mode (After session exited restart it), See below!
 -p pidfile         Create and lock a pid file, default null
+-D                 Initialize mydm to a daemon process
+-S                 Let X client setsid before executable
 ```
 
 Add server options
@@ -64,6 +64,14 @@ You can add the additional options to X server. e.g. -depth x, like this
 ```
 
 For more usages, please run `mydm -h`
+
+### Register mydm to a system service and auto start
+
+For a init system which supports LSB, you can run it to let mydm to a system service
+
+```
+# mydm-service-install --target linux-lsb --default
+```
 
 ### XSecurity
 
