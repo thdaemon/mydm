@@ -4,7 +4,7 @@
  * It is a opensource (free) software
  */
 
-#define _POSIX_C_SOURCE 200819L
+#define _POSIX_C_SOURCE 200809L
 #define _XOPEN_SOURCE 700
 #define _BSD_SOURCE
 

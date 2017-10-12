@@ -4,7 +4,7 @@
  * It is an opensource (free) software
  */
 
-#define _POSIX_C_SOURCE 200819L
+#define _POSIX_C_SOURCE 200809L
 #define _XOPEN_SOURCE 700
 
 #include <unistd.h>
@@ -22,7 +22,8 @@
 #include "daemon.h"
 #include "tools.h"
 
-static int __daemon(){
+static int __daemon()
+{
 	int fd0, fd1, fd2;
 	pid_t pid;
 	struct sigaction sa;
@@ -58,7 +59,7 @@ static int __daemon(){
 	fd1 = dup(fd0);
 	fd2 = dup(fd0);
 
-	if((fd0 != STDIN_FILENO) || (fd1 != STDOUT_FILENO) || (fd2 != STDERR_FILENO)){
+	if((fd0 != STDIN_FILENO) || (fd1 != STDOUT_FILENO) || (fd2 != STDERR_FILENO)) {
 		close(fd0);
 		close(fd1);
 		close(fd2);

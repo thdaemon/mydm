@@ -16,13 +16,19 @@ __target_lsb()
 	update-rc.d mydm defaults
 }
 
-# Usage: target_lsb <1=use default>
+# Usage: target_lsb <1=use default> <1=uninstall>
 target_lsb()
 {
 	local display
 	local vt
 	local greeter
 	local user
+
+	if [ "$2" = "1" ]; then
+		rm -f /etc/init.d/mydm
+		update-rc.d mydm remove
+		exit 0
+	fi
 
 	if ! [ "$1" = "1" ]; then
 		read -p "X server display (default: :0): " display
@@ -53,6 +59,7 @@ $0 [OPTIONS]
 					linux-systemd (x)
 					unix-ueld (x)
 	--default                     All use default value
+	--uninstall                   Uninstall the service
 	--help                        Show this usage
 
 EOF
@@ -60,6 +67,7 @@ EOF
 
 target=''
 default=''
+uninstall=''
 
 while true ; do
 	case "$1" in
@@ -69,6 +77,10 @@ while true ; do
 		;;
 	--default)
 		default='1'
+		shift
+		;;
+	--uninstall)
+		uninstall='1'
 		shift
 		;;
 	--help)
@@ -86,7 +98,7 @@ freebsd-init)
 	echo 'ERROR: this platform is developing...'
 	;;
 linux-lsb)
-	target_lsb "$default"
+	target_lsb "$default" "$uninstall"
 	;;
 linux-systemd)
 	echo 'ERROR: this platform is developing...'

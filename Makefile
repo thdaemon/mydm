@@ -51,6 +51,9 @@ bin-tar : all
 deb : all
 	./pkgsrc/mkdeb.sh
 
+defconfig :
+	./mkconfig.sh --enable-xsec
+
 gtk_greeter:
 	@$(MAKE) -C greeters/mydm-gtk-demo-greeter
 

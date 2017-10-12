@@ -6,7 +6,7 @@
  * A Simple Display Manager for Linux/Unix, it will start a Xorg Server and log a user to run X Client
  */
 
-#define _POSIX_C_SOURCE 200819L
+#define _POSIX_C_SOURCE 200809L
 #define _XOPEN_SOURCE 700
 
 #include "config.h"
