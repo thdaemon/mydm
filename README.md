@@ -13,17 +13,19 @@ make
 sudo make install
 ```
 
-On FreeBSD, you need use `gmake` instead of `make`. And if you do not want to install gcc, you can use FreeBSD clang compiler
+- On FreeBSD, you need use `gmake` instead of `make`. And if you do not want to install gcc, you can use FreeBSD clang compiler
 
-```
-gmake CC="cc -I/usr/local/include" LDFLAGS="-lX11 -L/usr/local/lib"
-```
+	```
+	gmake CC="cc -I/usr/local/include" LDFLAGS="-lX11 -L/usr/local/lib"
+	```
 
-To build a debug version, you can use
+- To build a debug version, you can use
 
-```
-DEBUG=1 make
-```
+	```
+	DEBUG=1 make
+	```
+
+- `./mkconfig.sh --enable-xsec` can be replaced by `make defconfig` now.
 
 ### Binary Release
 
@@ -60,20 +62,20 @@ Add server options
 You can add the additional options to X server. e.g. -depth x, like this
 
 ```
-# mydm -d :0 -v vt7 -c startxfce4 -u foo -n -- -depth 24
+mydm -d :0 -v vt7 -c startxfce4 -u foo -n -- -depth 24
 ```
 
-For more usages, please run `mydm -h`
+### Register mydm as a system service and auto start
 
-### Register mydm to a system service and auto start
-
-For a init system which supports LSB, you can run it to let mydm to a system service
+For an LSB-supported initialization system, you can register mydm as a system service directly using the following command (as root)
 
 ```
-# mydm-service-install --target linux-lsb --default
+mydm-service-install --target linux-lsb --default
 ```
 
-### XSecurity
+For the specific usage of the mydm-service-install utility, go to [this Wiki](doc/service.md)
+
+### About XSecurity
 
 1. Not Authority
 
@@ -124,4 +126,4 @@ If you do not set it, default X client will be set to 'xterm'
 
 When you compile mydm, libx11-dev may be needed because mydm use some headers of Xlib's. But after compiling mydm, libx11-dev is not needed anymore.
 
-So, if you don't want install to libx11-dev in compiling time, you can see [this Wiki](doc/own-libx11dev.md)
+And if you don't want install to libx11-dev in compiling time, you can see [this Wiki](doc/own-libx11dev.md)
