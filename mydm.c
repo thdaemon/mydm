@@ -361,12 +361,21 @@ work_start:
 		my_signal_cld_reset(SIGCHLD, SIG_DFL, 1);
 		my_signal_cld_reset(SIGUSR1, SIG_DFL, 1);
 
+		if (arg_xclient_setsid) {
+			if (setsid() < 0) {
+				mydm_print("setsid: %s\n", strerror(errno));
+				TELL_PARENT();
+				exit(1);
+			}
+		}
+
 		setpgid(getpid(), getpid());
-		if (arg_xclient_setsid) setsid();
 
 		if (arg_run != NULL) {
 			if ((cpid = fork()) < 0) {
-				err_quit("fork");
+				mydm_print("fork: %s\n", strerror(errno));
+				TELL_PARENT();
+				exit(1);
 			}
 
 			if (cpid == 0) {
